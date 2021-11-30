@@ -20,19 +20,10 @@ def criar_motorista():
     session.add(novo_motorista)
     session.commit()
 
-    caminhoes = CaminhaoModel.query.filter_by(motorista_id=novo_motorista.id).all()
-
-    return jsonify({
-      'id': novo_motorista.id,
-      'nome': novo_motorista.nome,
-      'sobrenome': novo_motorista.sobrenome,
-      'cpf': novo_motorista.cpf,
-      'created_at': novo_motorista.created_at,
-      'caminhoes': caminhoes
-    }), 201
+    return jsonify(novo_motorista), 201
   except IntegrityError as e:
     assert isinstance(e.orig, UniqueViolation)
-    return {'msg': 'CPF já cadastrado.'}, 409
+    return {'msg': 'CPF ou CNH já cadastrados.'}, 409
   except CpfFormatError as e:
     return {'msg': str(e)}, 400
 
