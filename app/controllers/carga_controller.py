@@ -1,7 +1,9 @@
 from flask import request, jsonify, current_app
+from flask_jwt_extended import jwt_required
 from app.models.carga_model import CargaModel
 from app.models.categoria_model import CategoriaModel
 
+@jwt_required()
 def criar_carga(dono_id: int):
   session = current_app.db.session
   data = request.get_json()
