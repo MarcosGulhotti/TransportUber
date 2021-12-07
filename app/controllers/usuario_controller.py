@@ -44,3 +44,18 @@ def login():
     return jsonify(access_token=access_token), 200
   else:
     return {'msg': "Sem autorização"}, 401
+
+
+def update(user_id: int):
+  data = request.get_json()
+
+  try:
+    user = UsuarioModel.query.filter_by(id=user_id).update(data)
+    current_app.db.session.commit()
+
+    user = UsuarioModel.query.get(user_id)
+
+    return jsonify(user.serialize()), 200
+    
+  except AttributeError:
+    return {"msg": "Usuário não encontrado"}, 404

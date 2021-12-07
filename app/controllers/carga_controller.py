@@ -30,6 +30,12 @@ def criar_carga(dono_id: int):
   return jsonify(nova_carga.serialize()), 201
 
 
+def listar_carga(carga_id: int):
+  carga = CargaModel.query.get(carga_id)
+
+  return jsonify(carga.serialize()), 200
+
+
 def listar_carga_id(carga_id: int):
   try:
     carga = CargaModel.query.filter_by(id=carga_id).first()
