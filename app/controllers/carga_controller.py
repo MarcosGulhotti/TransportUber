@@ -28,3 +28,9 @@ def criar_carga(dono_id: int):
   session.commit()
 
   return jsonify(nova_carga.serialize()), 201
+
+
+def listar_carga(carga_id: int):
+  carga = CargaModel.query.get(carga_id)
+
+  return jsonify(carga.serialize()), 200
