@@ -28,3 +28,12 @@ def criar_carga(dono_id: int):
   session.commit()
 
   return jsonify(nova_carga.serialize()), 201
+
+
+def listar_carga_id(carga_id: int):
+  try:
+    carga = CargaModel.query.filter_by(id=carga_id).first()
+    return jsonify(carga.serialize())
+  except AttributeError:
+    return {"error": f"Carga de id {carga_id} não existe"}, 400
+    
