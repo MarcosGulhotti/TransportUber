@@ -2,7 +2,7 @@ from flask import request, jsonify, current_app
 from flask_jwt_extended.view_decorators import jwt_required
 from app.models.caminhao_model import CaminhaoModel
 
-@jwt_required
+@jwt_required()
 def criar_caminhao(motorista_id: int):
   session = current_app.db.session
   data = request.get_json()
@@ -10,6 +10,7 @@ def criar_caminhao(motorista_id: int):
   data['marca'] = data['marca'].title()
   data['modelo'] = data['modelo'].title()
   data['motorista_id'] = motorista_id
+  print(data)
 
   novo_caminhao = CaminhaoModel(**data)
 
