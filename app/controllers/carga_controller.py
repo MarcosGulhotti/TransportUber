@@ -45,3 +45,12 @@ def listar_carga_origem(origem):
     return jsonify(lista_cargas)
   except AttributeError:
     return {"error": "Carga não foi encontrada"}, 400
+
+
+def listar_carga_destino(destino):
+  try:
+    carga = CargaModel.query.filter_by(destino=destino).all()
+    lista_cargas = [cargas.serialize() for cargas in carga]
+    return jsonify(lista_cargas)
+  except AttributeError:
+    return {"error": "Carga não foi encontrada"}, 400
