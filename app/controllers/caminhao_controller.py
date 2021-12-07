@@ -18,3 +18,11 @@ def criar_caminhao(motorista_id: int):
   session.commit()
 
   return jsonify(novo_caminhao.serialize()), 201
+
+
+def listar_caminhoes():
+  caminhoes = (CaminhaoModel.query.all())
+
+  lista_caminhoes = [caminhao.serialize() for caminhao in caminhoes]
+
+  return jsonify(lista_caminhoes), 200

@@ -48,7 +48,7 @@ def login():
 def listar_motorista_por_id(id: int):
   motorista = MotoristaModel.query.get(id)
   
-  return jsonify(motorista.serialize()), 201
+  return jsonify(motorista.serialize()), 200
 
 
 def listar_motoristas():
@@ -56,4 +56,4 @@ def listar_motoristas():
 
   lista_motoristas = [motorista.serialize() for motorista in motoristas]
 
-  return jsonify(lista_motoristas), 201
+  return jsonify(lista_motoristas), 200
