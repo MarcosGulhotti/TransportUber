@@ -42,5 +42,5 @@ class CargaModel(db.Model):
       'volume': self.volume,
       'caminhao': self.caminhao,
       'dono': f'{self.dono.nome} {self.dono.sobrenome}',
-      'categoria': self.categorias[0].nome
+      'categorias': [categoria.nome for categoria in self.categorias]
     }
