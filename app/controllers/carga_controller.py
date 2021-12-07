@@ -37,3 +37,11 @@ def listar_carga_id(carga_id: int):
   except AttributeError:
     return {"error": f"Carga de id {carga_id} não existe"}, 400
     
+
+def listar_carga_origem(origem):
+  try:
+    carga = CargaModel.query.filter_by(origem=origem).all()
+    lista_cargas = [cargas.serialize() for cargas in carga]
+    return jsonify(lista_cargas)
+  except AttributeError:
+    return {"error": "Carga não foi encontrada"}, 400
