@@ -47,10 +47,13 @@ def login():
 
 def listar_motorista_por_id(id: int):
   motorista = MotoristaModel.query.get(id)
-  caminhoes = CaminhaoModel.query.filter_by(motorista_id=id).all()
+  
+  return jsonify(motorista.serialize()), 200
 
-  return jsonify({
-    'nome': motorista.nome,
-    'sobrenome': motorista.sobrenome,
-    'caminhoes': caminhoes
-  })
+
+def listar_motoristas():
+  motoristas = (MotoristaModel.query.all())
+
+  lista_motoristas = [motorista.serialize() for motorista in motoristas]
+
+  return jsonify(lista_motoristas), 200
