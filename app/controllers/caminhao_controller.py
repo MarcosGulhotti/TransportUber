@@ -26,3 +26,17 @@ def listar_caminhoes():
   lista_caminhoes = [caminhao.serialize() for caminhao in caminhoes]
 
   return jsonify(lista_caminhoes), 200
+
+
+def atualizar_caminhao(id: int):
+  session = current_app.db.session
+  caminhao = CaminhaoModel.query.get(id)
+  data = request.get_json()
+
+  for k, v in data.items():
+    setattr(caminhao, k, v)
+
+  session.add(caminhao)
+  session.commit()
+
+  return caminhao.serialize()

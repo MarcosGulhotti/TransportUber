@@ -60,3 +60,16 @@ def listar_carga_destino(destino):
     return jsonify(lista_cargas)
   except AttributeError:
     return {"error": "Carga não foi encontrada"}, 400
+
+def atualizar_carga(id: int):
+  session = current_app.db.session
+  carga = CargaModel.query.get(id)
+  data = request.get_json()
+
+  for k, v in data.items():
+    setattr(carga, k, v)
+
+  session.add(carga)
+  session.commit()
+
+  return carga.serialize

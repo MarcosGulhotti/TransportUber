@@ -57,3 +57,19 @@ def listar_motoristas():
   lista_motoristas = [motorista.serialize() for motorista in motoristas]
 
   return jsonify(lista_motoristas), 200
+
+
+
+def atualizar_motorista(id: int):
+  session = current_app.db.session
+  motorista = MotoristaModel.query.get(id)
+  data = request.get_json()
+  data["updated_at"] = datetime.now()
+
+  for k, v in data.items():
+    setattr(motorista, k, v)
+
+  session.add(motorista)
+  session.commit()
+
+  return {}, 204
