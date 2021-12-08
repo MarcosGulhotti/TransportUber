@@ -6,6 +6,7 @@ from datetime import datetime
 from psycopg2.errors import UniqueViolation
 from sqlalchemy.exc import IntegrityError
 from flask_jwt_extended import create_access_token
+from werkzeug.exceptions import NotFound
 
 def criar_usuario():
   session = current_app.db.session
@@ -59,3 +60,18 @@ def update(user_id: int):
     
   except AttributeError:
     return {"msg": "Usuário não encontrado"}, 404
+
+
+def deletar_usuario(usuario_id):
+  try:
+    usuario_deletado = UsuarioModel.query.filter_by(
+      id=usuario_id).first_or_404(description="Usuário não encontrado")
+
+    current_app.db.session.delete(usuario_deletado)
+    current_app.db.session.commit()
+
+    return "", 204
+  except NotFound:
+    return jsonify({"erro": "Usuário não existe"}), 404  
+      
+  
