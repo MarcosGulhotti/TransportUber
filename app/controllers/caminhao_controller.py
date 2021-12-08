@@ -1,7 +1,7 @@
 from flask import request, jsonify, current_app
 from flask_jwt_extended.view_decorators import jwt_required
 from app.models.caminhao_model import CaminhaoModel
-
+from werkzeug.exceptions import NotFound
 @jwt_required()
 def criar_caminhao(motorista_id: int):
   session = current_app.db.session
@@ -40,3 +40,16 @@ def atualizar_caminhao(id: int):
   session.commit()
 
   return caminhao.serialize()
+
+
+def deletar_caminhao(caminhao_id):
+  try:
+    caminhao_deletado = CaminhaoModel.query.filter_by(
+      id=caminhao_id).first_or_404(description="Caminhão não encontrado")
+
+    current_app.db.session.delete(caminhao_deletado)
+    current_app.db.session.commit()
+
+    return "", 204
+  except NotFound:
+    return jsonify({"erro": "Caminhão não existe"}), 404  

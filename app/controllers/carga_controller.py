@@ -2,6 +2,7 @@ from flask import request, jsonify, current_app
 from flask_jwt_extended import jwt_required
 from app.models.carga_model import CargaModel
 from app.models.categoria_model import CategoriaModel
+from werkzeug.exceptions import NotFound
 
 @jwt_required()
 def criar_carga(dono_id: int):
@@ -73,3 +74,16 @@ def atualizar_carga(id: int):
   session.commit()
 
   return carga.serialize
+
+
+def deletar_carga(carga_id):
+  try:
+    carga_deletada = CargaModel.query.filter_by(
+      id=carga_id).first_or_404(description="Carga não encontrada")
+
+    current_app.db.session.delete(carga_deletada)
+    current_app.db.session.commit()
+
+    return "", 204
+  except NotFound:
+    return jsonify({"erro": "Carga não existe"}), 404  

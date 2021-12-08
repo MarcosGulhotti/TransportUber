@@ -6,6 +6,7 @@ from app.models.caminhao_model import CaminhaoModel
 from psycopg2.errors import UniqueViolation
 from sqlalchemy.exc import IntegrityError
 from flask_jwt_extended import create_access_token
+from werkzeug.exceptions import NotFound
 
 def criar_motorista():
   session = current_app.db.session
@@ -73,3 +74,16 @@ def atualizar_motorista(id: int):
   session.commit()
 
   return {}, 204
+
+#está estourando IntegrityError quando eu tento deletar especificamente pelo id 1, o resto funciona normalmente
+def deletar_motorista(id_motorista):
+  try:
+    motorista_deletado = MotoristaModel.query.filter_by(
+      id=id_motorista).first_or_404(description="Motorista não encontrado")
+
+    current_app.db.session.delete(motorista_deletado)
+    current_app.db.session.commit()
+
+    return "", 204
+  except NotFound:
+    return jsonify({"erro": "Motorista não existe"}), 404  
