@@ -31,7 +31,7 @@ def criar_usuario():
   except CpfFormatError as e:
     return {'msg': str(e)}, 400
 
-def login():
+def acesso_usuario():
   data = request.get_json()
 
   usuario: UsuarioModel = UsuarioModel.query.filter_by(cpf=data['cpf']).first()
@@ -83,3 +83,15 @@ def deletar_usuario(usuario_id):
     return jsonify({"erro": "Usuário não existe"}), 404  
       
   
+def listar_usuarios():
+  usuarios = (UsuarioModel.query.all())
+
+  lista_usuarios = [usuarios.serialize() for usuarios in usuarios]
+
+  return jsonify(lista_usuarios), 200
+
+
+def listar_usuario_id(usuario_id: int):
+  usuario = UsuarioModel.query.filter_by(id=usuario_id).first()
+
+  return jsonify(usuario.serialize()), 200
