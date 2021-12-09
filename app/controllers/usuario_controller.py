@@ -1,4 +1,3 @@
-from os import access
 from flask import jsonify, request, current_app
 from app.exceptions.exc import CpfFormatError
 from app.models.usuario_model import UsuarioModel
@@ -6,6 +5,8 @@ from datetime import datetime
 from psycopg2.errors import UniqueViolation
 from sqlalchemy.exc import IntegrityError
 from flask_jwt_extended import create_access_token
+from werkzeug.exceptions import NotFound
+from flask_jwt_extended import jwt_required
 
 def criar_usuario():
   session = current_app.db.session
@@ -31,7 +32,7 @@ def criar_usuario():
   except CpfFormatError as e:
     return {'msg': str(e)}, 400
 
-def login():
+def acesso_usuario():
   data = request.get_json()
 
   usuario: UsuarioModel = UsuarioModel.query.filter_by(cpf=data['cpf']).first()
@@ -44,3 +45,54 @@ def login():
     return jsonify(access_token=access_token), 200
   else:
     return {'msg': "Sem autorização"}, 401
+
+@jwt_required()
+def atualizar_usuario(usuario_id: int):
+  data = request.json
+
+  try:
+    UsuarioModel.query.filter_by(id=usuario_id).first_or_404()
+    autorizado_mudar = ['password_hash', 'email', 'celular']
+
+    for key in data:
+      if key not in autorizado_mudar:
+        return {"msg": f'Não é permitido modificar a chave {key}'}, 400
+
+      data['updated_at'] = datetime.now()
+
+      user = UsuarioModel.query.filter_by(id=usuario_id).update(data)
+      current_app.db.session.commit()
+
+      user = UsuarioModel.query.get(usuario_id)
+
+      return jsonify(user), 200
+    
+  except NotFound:
+    return jsonify({"msg": "Usuário não existe"}), 404  
+
+@jwt_required()
+def deletar_usuario(usuario_id):
+  try:
+    usuario_deletado = UsuarioModel.query.filter_by(
+      id=usuario_id).first_or_404(description="Usuário não encontrado")
+
+    current_app.db.session.delete(usuario_deletado)
+    current_app.db.session.commit()
+
+    return "", 204
+  except NotFound:
+    return jsonify({"erro": "Usuário não existe"}), 404  
+      
+@jwt_required()
+def listar_usuarios():
+  usuarios = (UsuarioModel.query.all())
+
+  lista_usuarios = [usuarios.serialize() for usuarios in usuarios]
+
+  return jsonify(lista_usuarios), 200
+
+@jwt_required()
+def listar_usuario_id(usuario_id: int):
+  usuario = UsuarioModel.query.filter_by(id=usuario_id).first()
+
+  return jsonify(usuario.serialize()), 200

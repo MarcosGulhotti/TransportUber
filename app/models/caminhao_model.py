@@ -20,6 +20,7 @@ class CaminhaoModel(db.Model):
   
   def serialize(self):
     return {
+      'id': self.id,
       'marca': self.marca,
       'modelo': self.modelo,
       'capacidade_de_carga': self.capacidade_de_carga,

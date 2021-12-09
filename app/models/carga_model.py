@@ -8,6 +8,7 @@ from app.models.caminhao_model import CaminhaoModel
 class CargaModel(db.Model):
   id: int
   disponivel: bool
+  descricao: str
   destino: str
   origem: str
   horario_saida: str
@@ -19,7 +20,8 @@ class CargaModel(db.Model):
 
   id = Column(Integer, primary_key=True)
   disponivel = Column(Boolean, nullable=False, default=True)
-  destino = Column(String, nullable=False)
+  descricao = Column(String)
+  destino = Column(String)
   origem = Column(String, nullable=False)
   horario_saida = Column(DateTime)
   horario_chegada = Column(DateTime)
@@ -34,6 +36,7 @@ class CargaModel(db.Model):
     return {
       'id': self.id,
       'disponivel': self.disponivel,
+      'descricao': self.descricao,
       'destino': self.destino,
       'origem': self.origem,
       'horario_saida': self.horario_saida,
@@ -42,5 +45,5 @@ class CargaModel(db.Model):
       'volume': self.volume,
       'caminhao': self.caminhao,
       'dono': f'{self.dono.nome} {self.dono.sobrenome}',
-      'categoria': self.categorias[0].nome
+      'categorias': [categoria.nome for categoria in self.categorias]
     }
