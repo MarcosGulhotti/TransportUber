@@ -6,8 +6,11 @@ from app.exceptions.exc import CpfFormatError
 from dataclasses import dataclass
 from werkzeug.security import generate_password_hash, check_password_hash
 
+from app.models.caminhao_model import CaminhaoModel
+
 @dataclass
 class MotoristaModel(db.Model):
+  id: int
   nome: str
   sobrenome: str
   cpf: str
@@ -49,3 +52,16 @@ class MotoristaModel(db.Model):
   
   def verify_password(self, password_to_compare):
     return check_password_hash(self.password_hash, password_to_compare)
+
+
+  def serialize(self):
+    return {
+      'id': self.id,
+      'nome': self.nome,
+      'sobrenome': self.sobrenome,
+      'cpf': self.cpf,
+      'cnh': self.cnh,
+      'created_at': self.created_at,
+      'updated_at': self.updated_at,
+      'caminhoes': CaminhaoModel.query.filter_by(motorista_id=self.id).all()
+    }

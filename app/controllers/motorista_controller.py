@@ -6,6 +6,7 @@ from app.models.caminhao_model import CaminhaoModel
 from psycopg2.errors import UniqueViolation
 from sqlalchemy.exc import IntegrityError
 from flask_jwt_extended import create_access_token
+from werkzeug.exceptions import NotFound
 
 def criar_motorista():
   session = current_app.db.session
@@ -47,10 +48,51 @@ def login():
 
 def listar_motorista_por_id(id: int):
   motorista = MotoristaModel.query.get(id)
-  caminhoes = CaminhaoModel.query.filter_by(motorista_id=id).all()
+  
+  return jsonify(motorista.serialize()), 200
 
-  return jsonify({
-    'nome': motorista.nome,
-    'sobrenome': motorista.sobrenome,
-    'caminhoes': caminhoes
-  })
+
+def listar_motoristas():
+  motoristas = (MotoristaModel.query.all())
+
+  lista_motoristas = [motorista.serialize() for motorista in motoristas]
+
+  return jsonify(lista_motoristas), 200
+
+def atualizar_localizacao(id: int):
+  session = current_app.db.session
+  motorista = MotoristaModel.query.get(id)
+  data = request.get_json()
+
+  for k in data.keys():
+      if k != "localizacao":
+          return {"error": "Chaves aceitas: [localizacao]"}, 409
+
+  data["updated_at"] = datetime.now()
+
+  for k, v in data.items():
+    setattr(motorista, k, v)
+
+  session.add(motorista)
+  session.commit()
+
+  return {"localizacao": motorista.localizacao}
+  
+def atualizar_senha(id: int):
+  session = current_app.db.session
+  motorista = MotoristaModel.query.get(id)
+  data = request.get_json()
+
+  for k in data.keys():
+      if k != "password":
+          return {"error": "Chaves aceitas: [password]"}, 409
+
+  data["updated_at"] = datetime.now()
+
+  for k, v in data.items():
+    setattr(motorista, k, v)
+
+  session.add(motorista)
+  session.commit()
+  
+  return {}, 204
