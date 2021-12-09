@@ -28,28 +28,23 @@ def listar_caminhoes():
   return jsonify(lista_caminhoes), 200
 
 
-def atualizar_caminhao(id: int):
-  session = current_app.db.session
-  caminhao = CaminhaoModel.query.get(id)
-  data = request.get_json()
-
-  for k, v in data.items():
-    setattr(caminhao, k, v)
-
-  session.add(caminhao)
-  session.commit()
-
-  return caminhao.serialize()
-
-
-def deletar_caminhao(caminhao_id):
+def atualizar_caminhao(caminhao_id: int):
   try:
-    caminhao_deletado = CaminhaoModel.query.filter_by(
-      id=caminhao_id).first_or_404(description="Caminhão não encontrado")
+    session = current_app.db.session
+    caminhao = CaminhaoModel.query.get(caminhao_id)
+    data = request.get_json()
 
-    current_app.db.session.delete(caminhao_deletado)
-    current_app.db.session.commit()
+    colunas_validas = ["capacidade_de_carga", "placa"]
 
-    return "", 204
-  except NotFound:
-    return jsonify({"erro": "Caminhão não existe"}), 404  
+    for k, v in data.items():
+      if k in colunas_validas:
+        setattr(caminhao, k, v)
+      else:
+        return {"error": f"Chave inválida: ({k})"}, 409
+
+    session.add(caminhao)
+    session.commit()
+
+    return caminhao.serialize()
+  except KeyError as e:
+    return {"error": f"Chaves faltantes: {e.args}"}

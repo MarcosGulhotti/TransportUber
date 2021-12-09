@@ -59,12 +59,15 @@ def listar_motoristas():
 
   return jsonify(lista_motoristas), 200
 
-
-
-def atualizar_motorista(id: int):
+def atualizar_localizacao(id: int):
   session = current_app.db.session
   motorista = MotoristaModel.query.get(id)
   data = request.get_json()
+
+  for k in data.keys():
+      if k != "localizacao":
+          return {"error": "Chaves aceitas: [localizacao]"}, 409
+
   data["updated_at"] = datetime.now()
 
   for k, v in data.items():
@@ -73,17 +76,23 @@ def atualizar_motorista(id: int):
   session.add(motorista)
   session.commit()
 
+  return {"localizacao": motorista.localizacao}
+  
+def atualizar_senha(id: int):
+  session = current_app.db.session
+  motorista = MotoristaModel.query.get(id)
+  data = request.get_json()
+
+  for k in data.keys():
+      if k != "password":
+          return {"error": "Chaves aceitas: [password]"}, 409
+
+  data["updated_at"] = datetime.now()
+
+  for k, v in data.items():
+    setattr(motorista, k, v)
+
+  session.add(motorista)
+  session.commit()
+  
   return {}, 204
-
-#está estourando IntegrityError quando eu tento deletar especificamente pelo id 1, o resto funciona normalmente
-def deletar_motorista(id_motorista):
-  try:
-    motorista_deletado = MotoristaModel.query.filter_by(
-      id=id_motorista).first_or_404(description="Motorista não encontrado")
-
-    current_app.db.session.delete(motorista_deletado)
-    current_app.db.session.commit()
-
-    return "", 204
-  except NotFound:
-    return jsonify({"erro": "Motorista não existe"}), 404  

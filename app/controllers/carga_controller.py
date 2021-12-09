@@ -16,8 +16,7 @@ def criar_carga(dono_id: int):
   nova_carga = CargaModel(**data)
 
   for categoria in categorias:
-    nova_categoria = CategoriaModel.query.filter_by(nome=categoria['nome']).first()
-    
+    nova_categoria = CategoriaModel.query.filter_by(nome=categoria["nome"]).first()
     if not nova_categoria:
       nova_categoria = CategoriaModel(**categoria)
       session.add(nova_categoria)
@@ -62,28 +61,45 @@ def listar_carga_destino(destino):
   except AttributeError:
     return {"error": "Carga não foi encontrada"}, 400
 
-def atualizar_carga(id: int):
-  session = current_app.db.session
-  carga = CargaModel.query.get(id)
-  data = request.get_json()
-
-  for k, v in data.items():
-    setattr(carga, k, v)
-
-  session.add(carga)
-  session.commit()
-
-  return carga.serialize
-
-
-def deletar_carga(carga_id):
+def atualizar_disponivel(carga_id: int):
   try:
-    carga_deletada = CargaModel.query.filter_by(
-      id=carga_id).first_or_404(description="Carga não encontrada")
+    session = current_app.db.session
+    carga = CargaModel.query.get(carga_id)
 
-    current_app.db.session.delete(carga_deletada)
-    current_app.db.session.commit()
+    setattr(carga, "disponivel", not carga.disponivel)
+    session.add(carga)
+    session.commit()
 
-    return "", 204
-  except NotFound:
-    return jsonify({"erro": "Carga não existe"}), 404  
+    return carga.serialize()
+  except KeyError as e:
+    return {"error": f"Chave(s) faltantes {e.args}"}, 400
+
+def atualizar_carga(carga_id: int):
+  try:
+    session = current_app.db.session
+    carga = CargaModel.query.get(carga_id)
+    data = request.get_json()
+
+    if carga.disponivel == False:
+      for k in data.keys():
+        if k != "previsao_entrega":
+            return {"error": "Chaves aceitas: [previsao_entrega]"}, 409
+
+      nova_previsao = data["previsao_entrega"]
+      setattr(carga, "previsao_entrega", nova_previsao)
+      return carga.serialize()
+
+
+    colunas_invalidas = ["id", "dono", "caminhao", "disponivel"]
+    for k, v in data.items():
+      if k not in colunas_invalidas:
+        setattr(carga, k, v)
+      else:
+        return {"error": f"Chave inválida: ({k})"}, 409
+
+    session.add(carga)
+    session.commit()
+
+    return carga.serialize()
+  except KeyError as e:
+    return {"error": f"Chave(s) faltantes {e.args}"}, 400
