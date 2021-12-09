@@ -31,7 +31,7 @@ class MotoristaModel(db.Model):
   updated_at = Column(DateTime)
   localizacao = Column(String)
   
-  caminhoes = relationship('CaminhaoModel', backref='motorista', uselist=False)
+  caminhoes = relationship('CaminhaoModel', backref='motorista', uselist=False, cascade='all, delete-orphan')
 
   @validates('cpf')
   def valida_cpf(self, key, cpf):

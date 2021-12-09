@@ -49,3 +49,16 @@ def atualizar_caminhao(caminhao_id: int):
     return caminhao.serialize()
   except KeyError as e:
     return {"error": f"Chaves faltantes: {e.args}"}
+
+def deletar_caminhao(caminhao_id):
+  try:
+    caminhao_deletado = CaminhaoModel.query.filter_by(
+      id=caminhao_id).first_or_404(description="Caminhão não encontrado")
+
+    current_app.db.session.delete(caminhao_deletado)
+    current_app.db.session.commit()
+
+    return "", 204
+  except NotFound:
+    return jsonify({"erro": "Caminhão não existe"}), 404  
+      
