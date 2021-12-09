@@ -28,15 +28,23 @@ def listar_caminhoes():
   return jsonify(lista_caminhoes), 200
 
 
-def atualizar_caminhao(id: int):
-  session = current_app.db.session
-  caminhao = CaminhaoModel.query.get(id)
-  data = request.get_json()
+def atualizar_caminhao(caminhao_id: int):
+  try:
+    session = current_app.db.session
+    caminhao = CaminhaoModel.query.get(caminhao_id)
+    data = request.get_json()
 
-  for k, v in data.items():
-    setattr(caminhao, k, v)
+    colunas_validas = ["capacidade_de_carga", "placa"]
 
-  session.add(caminhao)
-  session.commit()
+    for k, v in data.items():
+      if k in colunas_validas:
+        setattr(caminhao, k, v)
+      else:
+        return {"error": f"Chave inválida: ({k})"}, 409
 
-  return caminhao.serialize()
+    session.add(caminhao)
+    session.commit()
+
+    return caminhao.serialize()
+  except KeyError as e:
+    return {"error": f"Chaves faltantes: {e.args}"}

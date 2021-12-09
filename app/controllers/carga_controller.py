@@ -15,8 +15,7 @@ def criar_carga(dono_id: int):
   nova_carga = CargaModel(**data)
 
   for categoria in categorias:
-    nova_categoria = CategoriaModel.query.filter_by(nome=categoria['nome']).first()
-    
+    nova_categoria = CategoriaModel.query.filter_by(nome=categoria["nome"]).first()
     if not nova_categoria:
       nova_categoria = CategoriaModel(**categoria)
       session.add(nova_categoria)
@@ -61,15 +60,45 @@ def listar_carga_destino(destino):
   except AttributeError:
     return {"error": "Carga não foi encontrada"}, 400
 
-def atualizar_carga(id: int):
-  session = current_app.db.session
-  carga = CargaModel.query.get(id)
-  data = request.get_json()
+def atualizar_disponivel(carga_id: int):
+  try:
+    session = current_app.db.session
+    carga = CargaModel.query.get(carga_id)
 
-  for k, v in data.items():
-    setattr(carga, k, v)
+    setattr(carga, "disponivel", not carga.disponivel)
+    session.add(carga)
+    session.commit()
 
-  session.add(carga)
-  session.commit()
+    return carga.serialize()
+  except KeyError as e:
+    return {"error": f"Chave(s) faltantes {e.args}"}, 400
 
-  return carga.serialize
+def atualizar_carga(carga_id: int):
+  try:
+    session = current_app.db.session
+    carga = CargaModel.query.get(carga_id)
+    data = request.get_json()
+
+    if carga.disponivel == False:
+      for k in data.keys():
+        if k != "previsao_entrega":
+            return {"error": "Chaves aceitas: [previsao_entrega]"}, 409
+
+      nova_previsao = data["previsao_entrega"]
+      setattr(carga, "previsao_entrega", nova_previsao)
+      return carga.serialize()
+
+
+    colunas_invalidas = ["id", "dono", "caminhao", "disponivel"]
+    for k, v in data.items():
+      if k not in colunas_invalidas:
+        setattr(carga, k, v)
+      else:
+        return {"error": f"Chave inválida: ({k})"}, 409
+
+    session.add(carga)
+    session.commit()
+
+    return carga.serialize()
+  except KeyError as e:
+    return {"error": f"Chave(s) faltantes {e.args}"}, 400
