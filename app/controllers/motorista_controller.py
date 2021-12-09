@@ -6,6 +6,7 @@ from app.models.caminhao_model import CaminhaoModel
 from psycopg2.errors import UniqueViolation
 from sqlalchemy.exc import IntegrityError
 from flask_jwt_extended import create_access_token
+from werkzeug.exceptions import NotFound
 
 def criar_motorista():
   session = current_app.db.session
