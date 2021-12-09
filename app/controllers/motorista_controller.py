@@ -32,7 +32,7 @@ def criar_motorista():
   except CpfFormatError as e:
     return {'msg': str(e)}, 400
 
-def login():
+def acesso_motorista():
   data = request.get_json()
 
   motorista: MotoristaModel = MotoristaModel.query.filter_by(cpf=data['cpf']).first()

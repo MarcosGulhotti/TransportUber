@@ -103,3 +103,13 @@ def atualizar_carga(carga_id: int):
     return carga.serialize()
   except KeyError as e:
     return {"error": f"Chave(s) faltantes {e.args}"}, 400
+
+def deletar_carga(carga_id):
+  try:
+    carga_deletada = CargaModel.query.filter_by(
+      id=carga_id).first_or_404(description="Carga não encontrada")
+    current_app.db.session.delete(carga_deletada)
+    current_app.db.session.commit()
+    return "", 204
+  except NotFound:
+    return jsonify({"erro": "Carga não existe"}), 404
