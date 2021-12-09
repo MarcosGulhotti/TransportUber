@@ -29,13 +29,13 @@ def criar_carga(dono_id: int):
 
   return jsonify(nova_carga.serialize()), 201
 
-
+@jwt_required()
 def listar_carga(carga_id: int):
   carga = CargaModel.query.get(carga_id)
 
   return jsonify(carga.serialize()), 200
 
-
+@jwt_required()
 def listar_carga_id(carga_id: int):
   try:
     carga = CargaModel.query.filter_by(id=carga_id).first()
@@ -43,7 +43,7 @@ def listar_carga_id(carga_id: int):
   except AttributeError:
     return {"error": f"Carga de id {carga_id} não existe"}, 400
     
-
+@jwt_required()
 def listar_carga_origem(origem):
   try:
     carga = CargaModel.query.filter_by(origem=origem).all()
@@ -52,7 +52,7 @@ def listar_carga_origem(origem):
   except AttributeError:
     return {"error": "Carga não foi encontrada"}, 400
 
-
+@jwt_required()
 def listar_carga_destino(destino):
   try:
     carga = CargaModel.query.filter_by(destino=destino).all()
@@ -61,6 +61,7 @@ def listar_carga_destino(destino):
   except AttributeError:
     return {"error": "Carga não foi encontrada"}, 400
 
+@jwt_required()
 def atualizar_disponivel(carga_id: int):
   try:
     session = current_app.db.session
@@ -74,6 +75,7 @@ def atualizar_disponivel(carga_id: int):
   except KeyError as e:
     return {"error": f"Chave(s) faltantes {e.args}"}, 400
 
+@jwt_required()
 def atualizar_carga(carga_id: int):
   try:
     session = current_app.db.session
@@ -104,6 +106,7 @@ def atualizar_carga(carga_id: int):
   except KeyError as e:
     return {"error": f"Chave(s) faltantes {e.args}"}, 400
 
+@jwt_required()
 def deletar_carga(carga_id):
   try:
     carga_deletada = CargaModel.query.filter_by(

@@ -20,7 +20,7 @@ def criar_caminhao(motorista_id: int):
 
   return jsonify(novo_caminhao.serialize()), 201
 
-
+@jwt_required()
 def listar_caminhoes():
   caminhoes = (CaminhaoModel.query.all())
 
@@ -28,7 +28,7 @@ def listar_caminhoes():
 
   return jsonify(lista_caminhoes), 200
 
-
+@jwt_required()
 def atualizar_caminhao(caminhao_id: int):
   try:
     session = current_app.db.session
@@ -50,6 +50,7 @@ def atualizar_caminhao(caminhao_id: int):
   except KeyError as e:
     return {"error": f"Chaves faltantes: {e.args}"}
 
+@jwt_required()
 def deletar_caminhao(caminhao_id):
   try:
     caminhao_deletado = CaminhaoModel.query.filter_by(
