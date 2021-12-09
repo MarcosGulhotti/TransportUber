@@ -59,6 +59,19 @@ def listar_motoristas():
 
   return jsonify(lista_motoristas), 200
 
+def deletar_motorista(motorista_id):
+  try:
+    motorista_deletado = MotoristaModel.query.filter_by(
+      id=motorista_id).first_or_404(description="Usuário não encontrado")
+
+    current_app.db.session.delete(motorista_deletado)
+    current_app.db.session.commit()
+
+    return "", 204
+  except NotFound:
+    return jsonify({"erro": "Usuário não existe"}), 404  
+  
+
 def atualizar_localizacao(id: int):
   session = current_app.db.session
   motorista = MotoristaModel.query.get(id)
@@ -96,3 +109,4 @@ def atualizar_senha(id: int):
   session.commit()
   
   return {}, 204
+

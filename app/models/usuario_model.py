@@ -31,7 +31,7 @@ class UsuarioModel(db.Model):
   celular = Column(String, nullable=False)
   updated_at = Column(DateTime)
 
-  cargas = relationship('CargaModel', backref='dono', uselist=False)
+  cargas = relationship('CargaModel', backref='dono', uselist=False, cascade='all, delete-orphan')
 
   @validates('cpf')
   def valida_cpf(self, key, cpf):
