@@ -27,7 +27,7 @@ class UsuarioModel(db.Model):
   password_hash = Column(String(255), nullable=False)
   cpf = Column(String, nullable=False, unique=True)
   created_at = Column(DateTime)
-  email = Column(String)
+  email = Column(String, nullable=False)
   celular = Column(String, nullable=False)
   updated_at = Column(DateTime)
 
@@ -61,3 +61,16 @@ class UsuarioModel(db.Model):
   
   def verify_password(self, password_to_compare):
     return check_password_hash(self.password_hash, password_to_compare)
+
+  def serialize(self):
+    return{
+      'id': self.id,
+      'nome': self.nome,
+      'sobrenome': self.sobrenome,
+      'cpf': self.cpf,
+      'created_at': self.created_at,
+      'email': self.email,
+      'celular': self.celular,
+      'updated_at': self.updated_at,
+      'cargas': CargaModel.query.filter_by(dono_id=self.id).all()
+    }
