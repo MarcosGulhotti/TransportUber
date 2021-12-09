@@ -47,19 +47,29 @@ def login():
     return {'msg': "Sem autorização"}, 401
 
 
-def update(user_id: int):
-  data = request.get_json()
+def atualizar_usuario(usuario_id: int):
+  data = request.json
 
   try:
-    user = UsuarioModel.query.filter_by(id=user_id).update(data)
-    current_app.db.session.commit()
+    UsuarioModel.query.filter_by(id=usuario_id).first_or_404()
+    autorizado_mudar = ['password_hash', 'email', 'celular']
 
-    user = UsuarioModel.query.get(user_id)
+    for key in data:
+      if key not in autorizado_mudar:
+        print(data)
+        return {"msg": f'Não é permitido modificar a chave {key}'}, 400
 
-    return jsonify(user.serialize()), 200
+      data['updated_at'] = datetime.now()
+
+      user = UsuarioModel.query.filter_by(id=usuario_id).update(data)
+      current_app.db.session.commit()
+
+      user = UsuarioModel.query.get(usuario_id)
+
+      return jsonify(user), 200
     
-  except AttributeError:
-    return {"msg": "Usuário não encontrado"}, 404
+  except NotFound:
+    return jsonify({"msg": "Usuário não existe"}), 404  
 
 
 def deletar_usuario(usuario_id):
