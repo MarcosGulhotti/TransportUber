@@ -10,6 +10,7 @@ from app.models.caminhao_model import CaminhaoModel
 
 @dataclass
 class MotoristaModel(db.Model):
+  id: int
   nome: str
   sobrenome: str
   cpf: str

@@ -56,7 +56,6 @@ def atualizar_usuario(usuario_id: int):
 
     for key in data:
       if key not in autorizado_mudar:
-        print(data)
         return {"msg": f'Não é permitido modificar a chave {key}'}, 400
 
       data['updated_at'] = datetime.now()
