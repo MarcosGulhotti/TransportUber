@@ -1,8 +1,8 @@
 from flask import request, jsonify, current_app
-from flask_jwt_extended.view_decorators import jwt_required
+from flask_jwt_extended import jwt_required
 from app.models.caminhao_model import CaminhaoModel
 
-@jwt_required
+@jwt_required()
 def criar_caminhao(motorista_id: int):
   session = current_app.db.session
   data = request.get_json()

@@ -1,4 +1,3 @@
-from os import access
 from flask import jsonify, request, current_app
 from app.exceptions.exc import CpfFormatError
 from app.models.usuario_model import UsuarioModel
