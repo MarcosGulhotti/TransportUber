@@ -1,4 +1,5 @@
 from sqlalchemy.orm import relationship, validates
+from sqlalchemy.sql.sqltypes import Boolean
 from app.configs.database import db
 from sqlalchemy import Column, Integer, String, DateTime
 import re
@@ -13,6 +14,8 @@ class MotoristaModel(db.Model):
   id: int
   nome: str
   sobrenome: str
+  email: str
+  celular: str
   cpf: str
   created_at: str
   cnh: str
@@ -24,12 +27,15 @@ class MotoristaModel(db.Model):
   id = Column(Integer, primary_key=True)
   nome = Column(String, nullable=False)
   sobrenome = Column(String, nullable=False)
+  email = Column(String, nullable=False, unique=True)
+  celular = Column(String, nullable=False, unique=True)
   password_hash = Column(String(255), nullable=False)
   cpf = Column(String, nullable=False, unique=True)
   created_at = Column(DateTime)
   cnh = Column(String(11), nullable=False, unique=True)
   updated_at = Column(DateTime)
   localizacao = Column(String)
+  motorista_ativo = Column(Boolean, nullable=False)
   
   caminhoes = relationship('CaminhaoModel', backref='motorista', uselist=False, cascade='all, delete-orphan')
 
@@ -59,6 +65,8 @@ class MotoristaModel(db.Model):
       'id': self.id,
       'nome': self.nome,
       'sobrenome': self.sobrenome,
+      'email': self.email,
+      'celular': self.celular,
       'cpf': self.cpf,
       'cnh': self.cnh,
       'created_at': self.created_at,

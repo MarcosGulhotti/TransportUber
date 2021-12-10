@@ -4,11 +4,11 @@ from app.controllers.carga_controller import criar_carga, listar_carga_id, lista
 
 bp_usuario = Blueprint('bp_usuario', __name__, url_prefix='/usuario')
 
-bp_usuario.post('/<int:dono_id>/carga')(criar_carga)
-bp_usuario.patch('/<int:usuario_id>')(atualizar_usuario)
+bp_usuario.post('/carga')(criar_carga)
+bp_usuario.patch('')(atualizar_usuario)
 bp_usuario.get('/carga/<int:carga_id>')(listar_carga_id)
 bp_usuario.get('/carga/origem/<origem>')(listar_carga_origem)
 bp_usuario.get('/carga/destino/<destino>')(listar_carga_destino)
-bp_usuario.delete('/<int:usuario_id>')(deletar_usuario)
+bp_usuario.delete('')(deletar_usuario)
 bp_usuario.get('')(listar_usuarios)
 bp_usuario.get('/<int:usuario_id>')(listar_usuario_id)
