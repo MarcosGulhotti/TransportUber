@@ -7,6 +7,7 @@ from psycopg2.errors import UniqueViolation
 from sqlalchemy.exc import IntegrityError
 from flask_jwt_extended import create_access_token
 from werkzeug.exceptions import NotFound
+from flask_jwt_extended import jwt_required
 
 def criar_motorista():
   session = current_app.db.session
@@ -32,6 +33,7 @@ def criar_motorista():
   except CpfFormatError as e:
     return {'msg': str(e)}, 400
 
+
 def acesso_motorista():
   data = request.get_json()
 
@@ -46,12 +48,13 @@ def acesso_motorista():
   else:
     return {'msg': "Sem autorização"}, 401
 
+@jwt_required()
 def listar_motorista_por_id(id: int):
   motorista = MotoristaModel.query.get(id)
   
   return jsonify(motorista.serialize()), 200
 
-
+@jwt_required()
 def listar_motoristas():
   motoristas = (MotoristaModel.query.all())
 
@@ -59,6 +62,7 @@ def listar_motoristas():
 
   return jsonify(lista_motoristas), 200
 
+@jwt_required()
 def deletar_motorista(motorista_id):
   try:
     motorista_deletado = MotoristaModel.query.filter_by(
@@ -71,7 +75,7 @@ def deletar_motorista(motorista_id):
   except NotFound:
     return jsonify({"erro": "Usuário não existe"}), 404  
   
-
+@jwt_required()
 def atualizar_localizacao(id: int):
   session = current_app.db.session
   motorista = MotoristaModel.query.get(id)
@@ -91,6 +95,7 @@ def atualizar_localizacao(id: int):
 
   return {"localizacao": motorista.localizacao}
   
+@jwt_required()
 def atualizar_senha(id: int):
   session = current_app.db.session
   motorista = MotoristaModel.query.get(id)

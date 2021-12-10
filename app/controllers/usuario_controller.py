@@ -6,6 +6,7 @@ from psycopg2.errors import UniqueViolation
 from sqlalchemy.exc import IntegrityError
 from flask_jwt_extended import create_access_token
 from werkzeug.exceptions import NotFound
+from flask_jwt_extended import jwt_required
 
 def criar_usuario():
   session = current_app.db.session
@@ -45,7 +46,7 @@ def acesso_usuario():
   else:
     return {'msg': "Sem autorização"}, 401
 
-
+@jwt_required()
 def atualizar_usuario(usuario_id: int):
   data = request.json
 
@@ -69,7 +70,7 @@ def atualizar_usuario(usuario_id: int):
   except NotFound:
     return jsonify({"msg": "Usuário não existe"}), 404  
 
-
+@jwt_required()
 def deletar_usuario(usuario_id):
   try:
     usuario_deletado = UsuarioModel.query.filter_by(
@@ -82,7 +83,7 @@ def deletar_usuario(usuario_id):
   except NotFound:
     return jsonify({"erro": "Usuário não existe"}), 404  
       
-  
+@jwt_required()
 def listar_usuarios():
   usuarios = (UsuarioModel.query.all())
 
@@ -90,7 +91,7 @@ def listar_usuarios():
 
   return jsonify(lista_usuarios), 200
 
-
+@jwt_required()
 def listar_usuario_id(usuario_id: int):
   usuario = UsuarioModel.query.filter_by(id=usuario_id).first()
 
