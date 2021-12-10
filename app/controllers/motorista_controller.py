@@ -37,13 +37,13 @@ def criar_motorista():
 def acesso_motorista():
   data = request.get_json()
 
-  motorista: MotoristaModel = MotoristaModel.query.filter_by(cpf=data['cpf']).first()
+  motorista: MotoristaModel = MotoristaModel.query.filter_by(email=data['email']).first()
 
   if not motorista:
     return {"msg": "Motorista nao encontrado."}, 404
   
   if motorista.verify_password(data['password']):
-    access_token = create_access_token(identity=data['cpf'])
+    access_token = create_access_token(identity=data['email'])
     return jsonify(access_token=access_token), 200
   else:
     return {'msg': "Sem autorização"}, 401
