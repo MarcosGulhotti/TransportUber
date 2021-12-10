@@ -1,16 +1,18 @@
 from flask import request, jsonify, current_app
 from flask_jwt_extended import jwt_required
+from flask_jwt_extended.utils import get_jwt_identity
 from app.models.caminhao_model import CaminhaoModel
 from werkzeug.exceptions import NotFound
 
 @jwt_required()
-def criar_caminhao(motorista_id: int):
+def criar_caminhao():
   session = current_app.db.session
   data = request.get_json()
+  current_user = get_jwt_identity()
 
   data['marca'] = data['marca'].title()
   data['modelo'] = data['modelo'].title()
-  data['motorista_id'] = motorista_id
+  data['motorista_id'] = current_user
   print(data)
 
   novo_caminhao = CaminhaoModel(**data)
