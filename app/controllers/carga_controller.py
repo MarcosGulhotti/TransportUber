@@ -92,12 +92,15 @@ def atualizar_carga(carga_id: int):
       return carga.serialize()
 
 
-    colunas_invalidas = ["id", "dono", "caminhao", "disponivel"]
+    colunas = [
+      "descricao", "destino", "origem", "horario_saida", "horario_chegada", "previsao_entrega", "volume"
+      ]
+    
     for k, v in data.items():
-      if k not in colunas_invalidas:
+      if k in colunas:
         setattr(carga, k, v)
       else:
-        return {"error": f"Chave inválida: ({k})"}, 409
+        raise KeyError(k)
 
     session.add(carga)
     session.commit()
