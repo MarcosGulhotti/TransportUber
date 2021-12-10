@@ -1,20 +1,24 @@
-INSERT INTO usuarios (nome, sobrenome, cpf, email, celular, password_hash)
+INSERT INTO usuarios (nome, sobrenome, cpf, email, celular, password_hash, usuario_ativo)
 VALUES (
   'Rogerio',
   'Gavia',
   '990.123.254-17',
   'teste@email.com',
   '(48)99988-0099',
-  '7878#&$&*$&123'
+  '7878#&$&*$&123',
+  'TRUE'
 );
 
-INSERT INTO motoristas (nome, sobrenome, cpf, cnh, password_hash)
+INSERT INTO motoristas (nome, sobrenome, email, celular, cpf, cnh, password_hash, motorista_ativo)
 VALUES (
   'Daniel',
   'Lambert',
+  'tonhao@mail.com',
+  '(48)99988-4455'
   '970.124.243-18',
   '00021548729',
-  '1234$$$$123'
+  '1234$$$$123',
+  'TRUE'
 );
 
 INSERT INTO caminhoes (marca, modelo, capacidade_de_carga, motorista_id, placa)
