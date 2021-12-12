@@ -1,5 +1,6 @@
 from flask import request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from app.exceptions.exc import CategoryTypeError, RequiredKeysError
 from app.models.carga_model import CargaModel
 from app.models.categoria_model import CategoriaModel
 from werkzeug.exceptions import NotFound
@@ -10,25 +11,45 @@ def criar_carga():
   data = request.get_json()
   current_user = get_jwt_identity()
   
-  data['dono_id'] = current_user
+  try:
+    data['dono_id'] = current_user
 
-  categorias = data.pop('categorias')
+    chaves_necessarias = ['disponivel', 'destino', 'origem', 'volume', 'descricao', 'categorias']
+    for key in chaves_necessarias:
+      if key not in data:
+        raise RequiredKeysError(f'Está faltando a chave ({key}).')
+    
+    chaves_model = ['disponivel', 'destino', 'origem', 'volume', 'descricao', 'categorias', 'dono_id']
+    for key in data:
+      if key not in chaves_model:
+        raise RequiredKeysError(f'A chave ({key}) não é necessária.')
+    
+    if type(data['categorias']) != list or type(data['volume']) != float:
+      raise CategoryTypeError(data['categorias'], data['volume'])
+    
+    categorias = data.pop('categorias')
 
-  nova_carga = CargaModel(**data)
+    nova_carga = CargaModel(**data)
 
-  for categoria in categorias:
-    nova_categoria = CategoriaModel.query.filter_by(nome=categoria["nome"]).first()
-    if not nova_categoria:
-      nova_categoria = CategoriaModel(**categoria)
-      session.add(nova_categoria)
-      session.commit()
+    for categoria in categorias:
+      nova_categoria = CategoriaModel.query.filter_by(nome=categoria["nome"]).first()
+      if not nova_categoria:
+        nova_categoria = CategoriaModel(**categoria)
+        session.add(nova_categoria)
+        session.commit()
 
-    nova_carga.categorias.append(nova_categoria)
+      nova_carga.categorias.append(nova_categoria)
+    
+    session.add(nova_carga)
+    session.commit()
 
-  session.add(nova_carga)
-  session.commit()
+    return jsonify(nova_carga.serialize()), 201
+  
+  except RequiredKeysError as e:
+    return {'msg': str(e)}, 400
+  except CategoryTypeError as e:
+    return e.message, 400
 
-  return jsonify(nova_carga.serialize()), 201
 
 @jwt_required()
 def listar_carga(carga_id: int):
