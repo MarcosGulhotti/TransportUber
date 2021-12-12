@@ -1,5 +1,5 @@
 from sqlalchemy.orm import relationship, validates
-from sqlalchemy.sql.sqltypes import Boolean
+from sqlalchemy.sql.sqltypes import Boolean, Float
 from app.configs.database import db
 from sqlalchemy import Column, Integer, String, DateTime
 import re
@@ -21,6 +21,8 @@ class MotoristaModel(db.Model):
   cnh: str
   updated_at: str
   localizacao: str
+  latitude: float
+  longitude: float
   
   __tablename__ = 'motoristas'
   
@@ -36,6 +38,8 @@ class MotoristaModel(db.Model):
   updated_at = Column(DateTime)
   localizacao = Column(String)
   motorista_ativo = Column(Boolean, nullable=False)
+  latitude = Column(Float)
+  longitude = Column(Float)
   
   caminhoes = relationship('CaminhaoModel', backref='motorista', uselist=False, cascade='all, delete-orphan')
 
