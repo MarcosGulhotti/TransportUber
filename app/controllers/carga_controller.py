@@ -3,19 +3,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.models.carga_model import CargaModel
 from app.models.categoria_model import CategoriaModel
 from werkzeug.exceptions import NotFound
-
-def calcular_distancia(lat1, lon1, lat2, lon2):
-  from math import radians, cos, sin, asin, sqrt
-  lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
-
-  dlon = lon2 - lon1 
-  dlat = lat2 - lat1 
-
-  a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
-  c = 2 * asin(sqrt(a)) 
-  km = 6371 * c
-
-  return km
+from haversine import haversine
 
 def calcular_frete(origem, destino, volume):
   # origem => "{latitude}, {longitude}"
@@ -23,16 +11,10 @@ def calcular_frete(origem, destino, volume):
   # taxa/km => R$1.20
   # taxa/m3 => R$120
 
-  origem = [float(x) for x in origem.split(",")]
-  destino = [float(x) for x in destino.split(",")]
+  origem = tuple([float(x) for x in origem.split(",")])
+  destino = tuple([float(x) for x in destino.split(",")])
 
-  km = calcular_distancia(
-    lat1=origem[0],
-    lon1=origem[1],
-    lat2=destino[0],
-    lon2=destino[1]
-  )
-
+  km = haversine(origem, destino)
   total = (km*1.20) + (volume*120)
 
   return total
