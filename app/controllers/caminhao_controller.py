@@ -13,6 +13,7 @@ def criar_caminhao():
 
   data['marca'] = data['marca'].title()
   data['modelo'] = data['modelo'].title()
+  data['placa'] = data['placa'].upper()
   data['motorista_id'] = current_user
 
   novo_caminhao = CaminhaoModel(**data)

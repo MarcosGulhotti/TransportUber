@@ -134,3 +134,25 @@ def listar_usuario_id(usuario_id: int):
   usuario = UsuarioModel.query.filter_by(id=usuario_id).first()
 
   return jsonify(usuario.serialize()), 200
+
+
+@jwt_required()
+def atualizar_senha():
+  session = current_app.db.session
+  data = request.get_json()
+  current_user = get_jwt_identity()
+
+  usuario = UsuarioModel.query.get(current_user)
+  for k in data.keys():
+      if k != "password":
+          return {"error": "Chaves aceitas: [password]"}, 409
+
+  data["updated_at"] = datetime.now()
+
+  for k, v in data.items():
+    setattr(usuario, k, v)
+
+  session.add(usuario)
+  session.commit()
+  
+  return {"msg": "Senha atualizada"}, 200
