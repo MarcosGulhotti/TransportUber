@@ -1,11 +1,15 @@
 from datetime import timedelta, datetime
-from flask import request, jsonify, current_app
+from flask import json, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
+import sqlalchemy
 from app.exceptions.exc import CategoryTypeError, RequiredKeysError,PrevisaoEntregaFormatError
+from app.models.caminhao_model import CaminhaoModel
 from app.models.carga_model import CargaModel
 from app.models.categoria_model import CategoriaModel
 from werkzeug.exceptions import NotFound
 from haversine import haversine
+
+from app.models.motorista_model import MotoristaModel
 
 def calcular_frete(origem, destino, volume):
   """
@@ -121,13 +125,15 @@ def calcular_previsão_de_entrega(origem, destino, horario_saida):
 
 @jwt_required()
 def atualizar_disponivel(carga_id: int):  
+  data = request.get_json()
+
   try:
     session = current_app.db.session
     carga = CargaModel.query.get(carga_id)
 
     setattr(carga, 'horario_saida', datetime.now())
     setattr(carga, "disponivel", not carga.disponivel)
-
+    setattr(carga, 'caminhao_id', data["caminhao_id"])
     previsão_entrega = calcular_previsão_de_entrega(carga.origem, carga.destino, datetime.now())
 
     setattr(carga, "previsao_entrega", previsão_entrega)
@@ -139,6 +145,8 @@ def atualizar_disponivel(carga_id: int):
     return {"msg": f"Chave(s) faltantes {e.args}."}, 400
   except AttributeError:
     return jsonify({"msg": "Carga não existe."}), 404
+  except sqlalchemy.exc.IntegrityError:
+    return {"error": "caminhão não encontrado no banco"}, 404
 
 @jwt_required()
 def deletar_carga(carga_id):
