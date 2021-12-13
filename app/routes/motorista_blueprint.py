@@ -1,4 +1,5 @@
 from flask import Blueprint
+from app.controllers.carga_controller import pegar_carga
 from app.controllers.motorista_controller import atualizar_localizacao, atualizar_senha, listar_motorista_por_id, listar_motoristas
 from app.controllers.caminhao_controller import atualizar_caminhao, criar_caminhao, deletar_caminhao, listar_caminhoes
 
@@ -15,3 +16,5 @@ bp_motorista.post('/caminhao')(criar_caminhao)
 bp_motorista.get('/caminhoes')(listar_caminhoes)
 bp_motorista.patch('/caminhoes/<int:caminhao_id>')(atualizar_caminhao)
 bp_motorista.delete('/caminhao/<int:caminhao_id>')(deletar_caminhao)
+
+bp_motorista.patch('/carga/<int:carga_id>/pegar')(pegar_carga)

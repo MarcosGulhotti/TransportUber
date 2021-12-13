@@ -124,7 +124,7 @@ def calcular_previsão_de_entrega(origem, destino, horario_saida):
   return f"{data_chegada}"
 
 @jwt_required()
-def atualizar_disponivel(carga_id: int):  
+def pegar_carga(carga_id: int):  
   data = request.get_json()
 
   try:

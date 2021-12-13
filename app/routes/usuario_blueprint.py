@@ -1,6 +1,6 @@
 from flask import Blueprint
 from app.controllers.usuario_controller import atualizar_senha, atualizar_usuario, listar_usuario_id, listar_usuarios
-from app.controllers.carga_controller import atualizar_carga, atualizar_disponivel, criar_carga, deletar_carga, listar_carga_id, listar_carga_origem, listar_carga_destino
+from app.controllers.carga_controller import atualizar_carga, criar_carga, deletar_carga, listar_carga_id, listar_carga_origem, listar_carga_destino
 
 bp_usuario = Blueprint('bp_usuario', __name__, url_prefix='/usuario')
 
@@ -20,5 +20,4 @@ bp_usuario.get('/carga/origem/<origem>')(listar_carga_origem)
 bp_usuario.get('/carga/destino/<destino>')(listar_carga_destino)
 
 bp_usuario.patch('/carga/<int:carga_id>')(atualizar_carga)
-bp_usuario.patch('/carga/<int:carga_id>/disponibilidade')(atualizar_disponivel)
 bp_usuario.delete('/carga/<int:carga_id>')(deletar_carga)
