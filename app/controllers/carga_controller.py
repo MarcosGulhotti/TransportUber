@@ -1,3 +1,4 @@
+from datetime import timedelta, datetime
 from flask import request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.exceptions.exc import CategoryTypeError, RequiredKeysError,PrevisaoEntregaFormatError
@@ -103,13 +104,33 @@ def listar_carga_destino(destino):
   except AttributeError:
     return {"msg": "Carga não foi encontrada."}, 400
 
+def calcular_previsão_de_entrega(origem, destino, horario_saida):
+  origem = tuple([float(x) for x in origem.split(",")])
+  destino = tuple([float(x) for x in destino.split(",")])
+
+  km = haversine(origem, destino)
+  media_kmh = 80
+  previsão = km / media_kmh
+  previsão = previsão.__round__(2)
+  data_chegada = horario_saida + timedelta(hours=previsão)
+
+  data_chegada = data_chegada.strftime('%d/%m/%Y')
+
+
+  return f"{data_chegada}"
+
 @jwt_required()
-def atualizar_disponivel(carga_id: int):
+def atualizar_disponivel(carga_id: int):  
   try:
     session = current_app.db.session
     carga = CargaModel.query.get(carga_id)
 
+    setattr(carga, 'horario_saida', datetime.now())
     setattr(carga, "disponivel", not carga.disponivel)
+
+    previsão_entrega = calcular_previsão_de_entrega(carga.origem, carga.destino, datetime.now())
+
+    setattr(carga, "previsao_entrega", previsão_entrega)
     session.add(carga)
     session.commit()
 
@@ -118,6 +139,18 @@ def atualizar_disponivel(carga_id: int):
     return {"msg": f"Chave(s) faltantes {e.args}."}, 400
   except AttributeError:
     return jsonify({"msg": "Carga não existe."}), 404
+
+@jwt_required()
+def deletar_carga(carga_id):
+  try:
+    carga_deletada = CargaModel.query.filter_by(
+      id=carga_id).first_or_404(description="Carga não encontrada")
+    current_app.db.session.delete(carga_deletada)
+    current_app.db.session.commit()
+    return "", 204
+  except NotFound:
+    return jsonify({"msg": "Carga não existe."}), 404
+
 
 @jwt_required()
 def atualizar_carga(carga_id: int):
@@ -162,15 +195,4 @@ def atualizar_carga(carga_id: int):
   except PrevisaoEntregaFormatError as e:
     return {'msg': str(e)}, 400
   except AttributeError:
-    return jsonify({"msg": "Carga não existe."}), 404
-
-@jwt_required()
-def deletar_carga(carga_id):
-  try:
-    carga_deletada = CargaModel.query.filter_by(
-      id=carga_id).first_or_404(description="Carga não encontrada")
-    current_app.db.session.delete(carga_deletada)
-    current_app.db.session.commit()
-    return "", 204
-  except NotFound:
     return jsonify({"msg": "Carga não existe."}), 404
