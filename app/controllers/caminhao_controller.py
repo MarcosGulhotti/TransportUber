@@ -15,13 +15,12 @@ def criar_caminhao():
   data['motorista_id'] = current_user
   print(current_user)
 
-  # novo_caminhao = CaminhaoModel(**data)
+  novo_caminhao = CaminhaoModel(**data)
 
-  # session.add(novo_caminhao)
-  # session.commit()
+  session.add(novo_caminhao)
+  session.commit()
 
-  # return jsonify(novo_caminhao.serialize()), 201
-  return "oi"
+  return jsonify(novo_caminhao.serialize()), 201
 
 @jwt_required()
 def listar_caminhoes():
