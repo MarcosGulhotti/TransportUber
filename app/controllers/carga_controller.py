@@ -1,6 +1,6 @@
 from flask import request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from app.exceptions.exc import CategoryTypeError, RequiredKeysError
+from app.exceptions.exc import CategoryTypeError, RequiredKeysError,PrevisaoEntregaFormatError
 from app.models.carga_model import CargaModel
 from app.models.categoria_model import CategoriaModel
 from werkzeug.exceptions import NotFound
@@ -53,9 +53,12 @@ def criar_carga():
 
 @jwt_required()
 def listar_carga(carga_id: int):
-  carga = CargaModel.query.get(carga_id)
+  try:
+    carga = CargaModel.query.get(carga_id)
 
-  return jsonify(carga.serialize()), 200
+    return jsonify(carga.serialize()), 200
+  except AttributeError:
+    return jsonify({"msg": "Carga não existe."}), 404
 
 @jwt_required()
 def listar_carga_id(carga_id: int):
@@ -63,7 +66,7 @@ def listar_carga_id(carga_id: int):
     carga = CargaModel.query.filter_by(id=carga_id).first()
     return jsonify(carga.serialize())
   except AttributeError:
-    return {"error": f"Carga de id {carga_id} não existe"}, 400
+    return {"msg": f"Carga de id {carga_id} não existe."}, 400
     
 @jwt_required()
 def listar_carga_origem(origem):
@@ -72,7 +75,7 @@ def listar_carga_origem(origem):
     lista_cargas = [cargas.serialize() for cargas in carga]
     return jsonify(lista_cargas)
   except AttributeError:
-    return {"error": "Carga não foi encontrada"}, 400
+    return {"msg": "Carga não foi encontrada."}, 400
 
 @jwt_required()
 def listar_carga_destino(destino):
@@ -81,7 +84,7 @@ def listar_carga_destino(destino):
     lista_cargas = [cargas.serialize() for cargas in carga]
     return jsonify(lista_cargas)
   except AttributeError:
-    return {"error": "Carga não foi encontrada"}, 400
+    return {"msg": "Carga não foi encontrada."}, 400
 
 @jwt_required()
 def atualizar_disponivel(carga_id: int):
@@ -95,7 +98,9 @@ def atualizar_disponivel(carga_id: int):
 
     return carga.serialize()
   except KeyError as e:
-    return {"error": f"Chave(s) faltantes {e.args}"}, 400
+    return {"msg": f"Chave(s) faltantes {e.args}."}, 400
+  except AttributeError:
+    return jsonify({"msg": "Carga não existe."}), 404
 
 @jwt_required()
 def atualizar_carga(carga_id: int):
@@ -107,7 +112,7 @@ def atualizar_carga(carga_id: int):
     if carga.disponivel == False:
       for k in data.keys():
         if k != "previsao_entrega":
-            return {"error": "Chaves aceitas: [previsao_entrega]"}, 409
+            return {"msg": "Chaves aceitas: [previsao_entrega]."}, 409
 
       nova_previsao = data["previsao_entrega"]
       setattr(carga, "previsao_entrega", nova_previsao)
@@ -129,7 +134,11 @@ def atualizar_carga(carga_id: int):
 
     return carga.serialize()
   except KeyError as e:
-    return {"error": f"Chave(s) faltantes {e.args}"}, 400
+    return {"msg": f"Chave(s) desnecessária(s) ou não é permitida a atualização: {e.args}."}, 400
+  except PrevisaoEntregaFormatError as e:
+    return {'msg': str(e)}, 400
+  except AttributeError:
+    return jsonify({"msg": "Carga não existe."}), 404
 
 @jwt_required()
 def deletar_carga(carga_id):
@@ -140,4 +149,4 @@ def deletar_carga(carga_id):
     current_app.db.session.commit()
     return "", 204
   except NotFound:
-    return jsonify({"erro": "Carga não existe"}), 404
+    return jsonify({"msg": "Carga não existe."}), 404

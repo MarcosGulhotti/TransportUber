@@ -26,3 +26,6 @@ class CategoryTypeError(Exception):
             {"volume": f'{self.tipos[type(volume)]}, deve ser tipo float.'},
         ]}
         super().__init__(self.message)
+
+class PrevisaoEntregaFormatError(Exception):
+  ...

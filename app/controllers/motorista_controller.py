@@ -76,9 +76,13 @@ def acesso_motorista():
 
 @jwt_required()
 def listar_motorista_por_id(id: int):
-  motorista = MotoristaModel.query.get(id)
+  try:
+    motorista = MotoristaModel.query.get(id)
+
+    return jsonify(motorista.serialize()), 200
   
-  return jsonify(motorista.serialize()), 200
+  except AttributeError:
+    return jsonify({"msg": "Motorista não existe."}), 404
 
 @jwt_required()
 def listar_motoristas():
