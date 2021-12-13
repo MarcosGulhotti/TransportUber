@@ -7,10 +7,12 @@ from werkzeug.exceptions import NotFound
 from haversine import haversine
 
 def calcular_frete(origem, destino, volume):
-  # origem => "{latitude}, {longitude}"
-  # destino => "{latitude}, {longitude}"
-  # taxa/km => R$1.20
-  # taxa/m3 => R$120
+  """
+  origem => "{latitude}, {longitude}"
+  destino => "{latitude}, {longitude}"
+  taxa/km => R$1.20
+  taxa/m3 => R$120
+  """
 
   origem = tuple([float(x) for x in origem.split(",")])
   destino = tuple([float(x) for x in destino.split(",")])
@@ -80,15 +82,8 @@ def listar_carga(carga_id: int):
 
     return jsonify(carga.serialize()), 200
   except AttributeError:
-    return jsonify({"msg": "Carga não existe."}), 404
-
-@jwt_required()
-def listar_carga_id(carga_id: int):
-  try:
-    carga = CargaModel.query.filter_by(id=carga_id).first()
-    return jsonify(carga.serialize())
-  except AttributeError:
     return {"msg": f"Carga de id {carga_id} não existe."}, 400
+
     
 @jwt_required()
 def listar_carga_origem(origem):
