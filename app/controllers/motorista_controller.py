@@ -96,19 +96,6 @@ def listar_motoristas():
 
   return jsonify(lista_motoristas), 200
 
-@jwt_required()
-def deletar_motorista():
-  try:
-    current_user = get_jwt_identity()
-    motorista_deletado = MotoristaModel.query.filter_by(
-      id=current_user).first_or_404(description="Usuário não encontrado")
-
-    current_app.db.session.delete(motorista_deletado)
-    current_app.db.session.commit()
-
-    return "", 204
-  except NotFound:
-    return jsonify({"erro": "Usuário não existe"}), 404  
   
 def busca_localizacao(latitude, longitude):
   geo = Nominatim(user_agent="transport_uber")

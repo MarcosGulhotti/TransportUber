@@ -1,5 +1,5 @@
 from flask import Blueprint
-from app.controllers.usuario_controller import atualizar_senha, deletar_usuario, atualizar_usuario, listar_usuario_id, listar_usuarios
+from app.controllers.usuario_controller import atualizar_senha, atualizar_usuario, listar_usuario_id, listar_usuarios
 from app.controllers.carga_controller import atualizar_carga, atualizar_disponivel, criar_carga, deletar_carga, listar_carga_id, listar_carga_origem, listar_carga_destino
 
 bp_usuario = Blueprint('bp_usuario', __name__, url_prefix='/usuario')
@@ -7,7 +7,6 @@ bp_usuario = Blueprint('bp_usuario', __name__, url_prefix='/usuario')
 # Rotas Usuarios
 bp_usuario.get('')(listar_usuarios)
 bp_usuario.get('/<int:usuario_id>')(listar_usuario_id)
-bp_usuario.delete('')(deletar_usuario)
 bp_usuario.patch('')(atualizar_usuario)
 bp_usuario.patch('/senha')(atualizar_senha)
 
