@@ -23,6 +23,7 @@ class MotoristaModel(db.Model):
   localizacao: str
   latitude: float
   longitude: float
+  motorista_ativo: bool
   
   __tablename__ = 'motoristas'
   
