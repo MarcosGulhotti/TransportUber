@@ -8,6 +8,7 @@ from app.models.carga_model import CargaModel
 
 @dataclass
 class CategoriaModel(db.Model):
+  id: int
   nome: str
   cargas: CargaModel
 
@@ -20,6 +21,7 @@ class CategoriaModel(db.Model):
 
   def serialize(self):
     return {
+      'id': self.id,
       'nome': self.nome,
       'cargas': self.cargas
     }

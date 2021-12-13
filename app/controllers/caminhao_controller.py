@@ -1,6 +1,7 @@
 from flask import request, jsonify, current_app
 from flask_jwt_extended import jwt_required
 from flask_jwt_extended.utils import get_jwt_identity
+import sqlalchemy
 from app.models.caminhao_model import CaminhaoModel
 from werkzeug.exceptions import NotFound
 
@@ -16,9 +17,11 @@ def criar_caminhao():
 
   novo_caminhao = CaminhaoModel(**data)
 
-  session.add(novo_caminhao)
-  session.commit()
-
+  try:
+    session.add(novo_caminhao)
+    session.commit()
+  except sqlalchemy.exc.IntegrityError:
+    return {"error": "Caminhão com esta placa já foi registrado"}, 400
   return jsonify(novo_caminhao.serialize()), 201
 
 @jwt_required()

@@ -4,8 +4,10 @@ from app.controllers.motorista_controller import criar_motorista, acesso_motoris
 
 bp_autenticacao = Blueprint('bp_autenticacao', __name__, url_prefix='/autenticacao')
 
-bp_autenticacao.post('/usuario/acesso')(acesso_usuario)
+# Rotas Usuario
 bp_autenticacao.post('/usuario/registro')(criar_usuario)
+bp_autenticacao.post('/usuario/acesso')(acesso_usuario)
 
-bp_autenticacao.post('/motorista/acesso')(acesso_motorista)
+# Rotas Motorista
 bp_autenticacao.post('/motorista/registro')(criar_motorista)
+bp_autenticacao.post('/motorista/acesso')(acesso_motorista)
