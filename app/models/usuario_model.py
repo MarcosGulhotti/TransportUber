@@ -1,4 +1,5 @@
 from sqlalchemy.orm import relationship, validates
+from sqlalchemy.sql.sqltypes import Boolean
 from app.configs.database import db
 from sqlalchemy import Column, Integer, String, DateTime
 import re
@@ -27,9 +28,10 @@ class UsuarioModel(db.Model):
   password_hash = Column(String(255), nullable=False)
   cpf = Column(String, nullable=False, unique=True)
   created_at = Column(DateTime)
-  email = Column(String, nullable=False)
-  celular = Column(String, nullable=False)
+  email = Column(String, nullable=False, unique=True)
+  celular = Column(String, nullable=False, unique=True)
   updated_at = Column(DateTime)
+  usuario_ativo = Column(Boolean, nullable=False)
 
   cargas = relationship('CargaModel', backref='dono', uselist=False, cascade='all, delete-orphan')
 

@@ -12,3 +12,4 @@ def init_app(app: Flask):
   from app.models.motorista_model import MotoristaModel
   from app.models.usuario_model import UsuarioModel
   from app.models.categoria_model import CategoriaModel
+  from app.models.usuario_inativo_model import UsuarioInativoModel

@@ -1,15 +1,38 @@
 from flask import request, jsonify, current_app
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.models.carga_model import CargaModel
 from app.models.categoria_model import CategoriaModel
 from werkzeug.exceptions import NotFound
+from haversine import haversine
+
+def calcular_frete(origem, destino, volume):
+  # origem => "{latitude}, {longitude}"
+  # destino => "{latitude}, {longitude}"
+  # taxa/km => R$1.20
+  # taxa/m3 => R$120
+
+  origem = tuple([float(x) for x in origem.split(",")])
+  destino = tuple([float(x) for x in destino.split(",")])
+
+  km = haversine(origem, destino)
+  total = (km*1.20) + (volume*120)
+
+  return total
 
 @jwt_required()
-def criar_carga(dono_id: int):
+def criar_carga():
   session = current_app.db.session
   data = request.get_json()
-
-  data['dono_id'] = dono_id
+  current_user = get_jwt_identity()
+  
+  data['dono_id'] = current_user
+  valor_frete = calcular_frete(
+    origem=data["origem"],
+    destino=data["destino"],
+    volume=data["volume"]
+  )
+  data["valor_frete"] = valor_frete
+  data["valor_frete_motorista"] = valor_frete - (valor_frete*0.3)
 
   categorias = data.pop('categorias')
 
@@ -96,6 +119,14 @@ def atualizar_carga(carga_id: int):
       "descricao", "destino", "origem", "horario_saida", "horario_chegada", "previsao_entrega", "volume"
       ]
     
+    valor_frete = calcular_frete(
+      origem=data["origem"],
+      destino=data["destino"],
+      volume=data["volume"]
+    )
+    data["valor_frete"] = valor_frete
+    data["valor_frete_motorista"] = valor_frete - (valor_frete*0.3)
+
     for k, v in data.items():
       if k in colunas:
         setattr(carga, k, v)

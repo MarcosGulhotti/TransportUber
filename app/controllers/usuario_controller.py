@@ -1,4 +1,5 @@
 from flask import jsonify, request, current_app
+from flask_jwt_extended.utils import get_jwt_identity
 from app.exceptions.exc import CpfFormatError
 from app.models.usuario_model import UsuarioModel
 from datetime import datetime
@@ -35,23 +36,24 @@ def criar_usuario():
 def acesso_usuario():
   data = request.get_json()
 
-  usuario: UsuarioModel = UsuarioModel.query.filter_by(cpf=data['cpf']).first()
+  usuario: UsuarioModel = UsuarioModel.query.filter_by(email=data['email']).first()
 
   if not usuario:
     return {"msg": "Usuario nao encontrado."}, 404
   
   if usuario.verify_password(data['password']):
-    access_token = create_access_token(identity=data['cpf'])
+    access_token = create_access_token(identity=usuario.id)
     return jsonify(access_token=access_token), 200
   else:
     return {'msg': "Sem autorização"}, 401
 
 @jwt_required()
-def atualizar_usuario(usuario_id: int):
+def atualizar_usuario():
   data = request.json
+  current_user = get_jwt_identity()
 
   try:
-    UsuarioModel.query.filter_by(id=usuario_id).first_or_404()
+    UsuarioModel.query.filter_by(id=current_user).first_or_404()
     autorizado_mudar = ['password_hash', 'email', 'celular']
 
     for key in data:
@@ -60,10 +62,10 @@ def atualizar_usuario(usuario_id: int):
 
       data['updated_at'] = datetime.now()
 
-      user = UsuarioModel.query.filter_by(id=usuario_id).update(data)
+      user = UsuarioModel.query.filter_by(id=current_user).update(data)
       current_app.db.session.commit()
 
-      user = UsuarioModel.query.get(usuario_id)
+      user = UsuarioModel.query.get(current_user)
 
       return jsonify(user), 200
     
@@ -71,10 +73,11 @@ def atualizar_usuario(usuario_id: int):
     return jsonify({"msg": "Usuário não existe"}), 404  
 
 @jwt_required()
-def deletar_usuario(usuario_id):
+def deletar_usuario():
   try:
+    current_user = get_jwt_identity()
     usuario_deletado = UsuarioModel.query.filter_by(
-      id=usuario_id).first_or_404(description="Usuário não encontrado")
+      id=current_user).first_or_404(description="Usuário não encontrado")
 
     current_app.db.session.delete(usuario_deletado)
     current_app.db.session.commit()
