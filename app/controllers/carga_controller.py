@@ -4,6 +4,21 @@ from app.exceptions.exc import CategoryTypeError, RequiredKeysError,PrevisaoEntr
 from app.models.carga_model import CargaModel
 from app.models.categoria_model import CategoriaModel
 from werkzeug.exceptions import NotFound
+from haversine import haversine
+
+def calcular_frete(origem, destino, volume):
+  # origem => "{latitude}, {longitude}"
+  # destino => "{latitude}, {longitude}"
+  # taxa/km => R$1.20
+  # taxa/m3 => R$120
+
+  origem = tuple([float(x) for x in origem.split(",")])
+  destino = tuple([float(x) for x in destino.split(",")])
+
+  km = haversine(origem, destino)
+  total = (km*1.20) + (volume*120)
+
+  return total
 
 @jwt_required()
 def criar_carga():
@@ -13,6 +28,13 @@ def criar_carga():
   
   try:
     data['dono_id'] = current_user
+    valor_frete = calcular_frete(
+      origem=data["origem"],
+      destino=data["destino"],
+      volume=data["volume"]
+    )
+    data["valor_frete"] = valor_frete
+    data["valor_frete_motorista"] = valor_frete - (valor_frete*0.3)
 
     chaves_necessarias = ['disponivel', 'destino', 'origem', 'volume', 'descricao', 'categorias']
     for key in chaves_necessarias:
@@ -123,6 +145,14 @@ def atualizar_carga(carga_id: int):
       "descricao", "destino", "origem", "horario_saida", "horario_chegada", "previsao_entrega", "volume"
       ]
     
+    valor_frete = calcular_frete(
+      origem=data["origem"],
+      destino=data["destino"],
+      volume=data["volume"]
+    )
+    data["valor_frete"] = valor_frete
+    data["valor_frete_motorista"] = valor_frete - (valor_frete*0.3)
+
     for k, v in data.items():
       if k in colunas:
         setattr(carga, k, v)
