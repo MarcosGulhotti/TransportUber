@@ -8,6 +8,10 @@ from sqlalchemy.exc import IntegrityError
 from flask_jwt_extended import create_access_token
 from werkzeug.exceptions import NotFound
 from flask_jwt_extended import jwt_required
+from geopy.geocoders import Nominatim
+import time
+import json
+
 
 def criar_motorista():
   session = current_app.db.session
@@ -76,20 +80,38 @@ def deletar_motorista():
   except NotFound:
     return jsonify({"erro": "Usuário não existe"}), 404  
   
+def busca_localizacao(latitude, longitude):
+  geo = Nominatim(user_agent="transport_uber")
+  coordenadas = f"{latitude}, {longitude}"
+  time.sleep(3)
+  try:
+        return geo.reverse(coordenadas, language="pt-br").raw
+  except:
+      return busca_localizacao(latitude, longitude)
+
 @jwt_required()
 def atualizar_localizacao():
   session = current_app.db.session
   data = request.get_json()
   current_user = get_jwt_identity()
 
-  motorista = MotoristaModel.query.get(current_user)
+  motorista = MotoristaModel.query.filter(MotoristaModel.email == current_user).first()
   for k in data.keys():
-      if k != "localizacao":
-          return {"error": "Chaves aceitas: [localizacao]"}, 409
+      if k != "latitude" and k != "longitude":
+          return {"error": "Chaves aceitas: [latitude, longitude]"}, 409
+  
+  latitude = float(data["latitude"])
+  longitude = float(data["longitude"])
+  localizacao = busca_localizacao(latitude=latitude, longitude=longitude)
 
-  data["updated_at"] = datetime.now()
+  dados = {
+    "updated_at": datetime.now(),
+    "localizacao": json.dumps(localizacao["address"]),
+    "latitude": latitude,
+    "longitude": longitude
+  }
 
-  for k, v in data.items():
+  for k, v in dados.items():
     setattr(motorista, k, v)
 
   session.add(motorista)
