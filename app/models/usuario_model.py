@@ -19,6 +19,7 @@ class UsuarioModel(db.Model):
   celular: str
   updated_at: str
   cargas: CargaModel
+  usuario_ativo: bool
 
   __tablename__ = 'usuarios'
   
