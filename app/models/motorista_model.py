@@ -1,9 +1,9 @@
 from sqlalchemy.orm import relationship, validates
-from sqlalchemy.sql.sqltypes import Boolean
+from sqlalchemy.sql.sqltypes import Boolean, Float
 from app.configs.database import db
 from sqlalchemy import Column, Integer, String, DateTime
 import re
-from app.exceptions.exc import CpfFormatError
+from app.exceptions.exc import CelularFormatError, CpfFormatError
 from dataclasses import dataclass
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -21,6 +21,8 @@ class MotoristaModel(db.Model):
   cnh: str
   updated_at: str
   localizacao: str
+  latitude: float
+  longitude: float
   
   __tablename__ = 'motoristas'
   
@@ -36,6 +38,8 @@ class MotoristaModel(db.Model):
   updated_at = Column(DateTime)
   localizacao = Column(String)
   motorista_ativo = Column(Boolean, nullable=False)
+  latitude = Column(Float)
+  longitude = Column(Float)
   
   caminhoes = relationship('CaminhaoModel', backref='motorista', uselist=False, cascade='all, delete-orphan')
 
@@ -47,6 +51,15 @@ class MotoristaModel(db.Model):
       raise CpfFormatError("Formato de CPF inválido. Formato aceito = xxx.xxx.xxx-xx")
 
     return cpf
+
+  @validates('celular')
+  def valida_celular(self, key, celular):
+    pattern_celular = "^\([1-9]{2}\)(?:[2-8]|9[1-9])[0-9]{3}\-[0-9]{4}$"
+
+    if not re.search(pattern_celular, celular):
+      raise CelularFormatError("Formato de celular inválido. Formato aceito = (xx)xxxxx-xxxx")
+    
+    return celular
   
   @property
   def password(self):

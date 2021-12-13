@@ -1,8 +1,10 @@
-from sqlalchemy.orm import backref, relationship
+from sqlalchemy.orm import backref, relationship, validates
+import re
 from app.configs.database import db
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, Boolean, DateTime
 from dataclasses import dataclass
 from app.models.caminhao_model import CaminhaoModel
+from app.exceptions.exc import PrevisaoEntregaFormatError
 
 @dataclass
 class CargaModel(db.Model):
@@ -15,6 +17,8 @@ class CargaModel(db.Model):
   horario_chegada: str
   volume: float
   caminhao: CaminhaoModel
+  valor_frete: float
+  valor_frete_motorista: float
 
   __tablename__ = 'cargas'
 
@@ -29,9 +33,21 @@ class CargaModel(db.Model):
   volume = Column(Float, nullable=False)
   caminhao_id = Column(Integer, ForeignKey('caminhoes.id'))
   dono_id = Column(Integer, ForeignKey('usuarios.id'), nullable=False)
+  valor_frete = Column(Float, nullable=False)
+  valor_frete_motorista = Column(Float, nullable=False)
+
 
   caminhao = relationship('CaminhaoModel', backref=backref('carga', uselist=False), uselist=False)
   
+  @validates('previsao_entrega')
+  def valida_previsao_entrega(self, key, previsao_entrega):
+    pattern = "(^\d{2}\/\d{2}\/\d{4}$)"
+
+    if not re.search(pattern, previsao_entrega):
+      raise PrevisaoEntregaFormatError("Formato para previsão de entrega inválido. Formato aceito = xx/xx/xxxx")
+
+    return previsao_entrega
+
   def serialize(self):
     return {
       'id': self.id,
@@ -45,5 +61,7 @@ class CargaModel(db.Model):
       'volume': self.volume,
       'caminhao': self.caminhao,
       'dono': f'{self.dono.nome} {self.dono.sobrenome}',
-      'categorias': [categoria.nome for categoria in self.categorias]
+      'categorias': [categoria.nome for categoria in self.categorias],
+      "valor_frete": round(self.valor_frete, 2),
+      "valor_frete_motorista": round(self.valor_frete_motorista, 2)
     }
