@@ -19,14 +19,14 @@ def criar_usuario():
   data['created_at'] = datetime.now()
 
   try:
-    chaves_necessarias = ['nome', 'sobrenome', 'password', 'cpf', 'email', 'celular', 'usuario_ativo']
+    chaves_necessarias = ['nome', 'sobrenome', 'password', 'cpf', 'email', 'celular']
     for key in chaves_necessarias:
       if key not in data:
         raise RequiredKeysError(f'Está faltando a chave ({key}).')
     
     chaves_model = ['nome', 'sobrenome', 'password', 'cpf', 'email', 'celular', 'usuario_ativo', 'created_at', 'updated_at']
     for key in data:
-      if key not in chaves_model:
+      if key not in chaves_model and key != 'super_adm':
         raise RequiredKeysError(f'A chave ({key}) não é necessária.')
     
     password_to_hash = data.pop('password')

@@ -23,7 +23,7 @@ def criar_motorista():
   data['created_at'] = datetime.now()
 
   try:
-    chaves_necessarias = ['nome', 'sobrenome', 'password', 'cpf', 'cnh','email', 'celular', 'motorista_ativo']
+    chaves_necessarias = ['nome', 'sobrenome', 'password', 'cpf', 'cnh','email', 'celular']
     for key in chaves_necessarias:
       if key not in data:
         raise RequiredKeysError(f'Está faltando a chave ({key}).')
@@ -68,7 +68,7 @@ def acesso_motorista():
         raise LoginKeysError(f'A chave ({key}) é necessária.')
     
     if motorista.verify_password(data['password']):
-      access_token = create_access_token(identity=data['email'])
+      access_token = create_access_token(identity=motorista.id)
       return jsonify(access_token=access_token), 200
     else:
       return {'msg': "Sem autorização"}, 401
@@ -134,9 +134,12 @@ def atualizar_localizacao():
   longitude = float(data["longitude"])
   localizacao = busca_localizacao(latitude=latitude, longitude=longitude)
 
+  cidade = localizacao["address"]["village"]
+  estado = localizacao["address"]["state"]
+
   dados = {
     "updated_at": datetime.now(),
-    "localizacao": json.dumps(localizacao["address"]),
+    "localizacao": f"{cidade}/{estado}",
     "latitude": latitude,
     "longitude": longitude
   }
@@ -168,5 +171,5 @@ def atualizar_senha():
   session.add(motorista)
   session.commit()
   
-  return {}, 204
+  return {"msg": "Senha atualizada"}, 200
 

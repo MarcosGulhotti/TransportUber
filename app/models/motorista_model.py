@@ -37,10 +37,10 @@ class MotoristaModel(db.Model):
   cnh = Column(String(11), nullable=False, unique=True)
   updated_at = Column(DateTime)
   localizacao = Column(String)
-  motorista_ativo = Column(Boolean, nullable=False)
+  motorista_ativo = Column(Boolean, default=True)
   latitude = Column(Float)
   longitude = Column(Float)
-  
+
   caminhoes = relationship('CaminhaoModel', backref='motorista', uselist=False, cascade='all, delete-orphan')
 
   @validates('cpf')

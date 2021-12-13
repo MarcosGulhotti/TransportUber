@@ -38,12 +38,12 @@ def criar_carga():
     data["valor_frete"] = valor_frete
     data["valor_frete_motorista"] = valor_frete - (valor_frete*0.3)
 
-    chaves_necessarias = ['disponivel', 'destino', 'origem', 'volume', 'descricao', 'categorias']
+    chaves_necessarias = ['disponivel', 'destino', 'origem', 'volume', 'descricao', 'categorias', ]
     for key in chaves_necessarias:
       if key not in data:
         raise RequiredKeysError(f'Está faltando a chave ({key}).')
     
-    chaves_model = ['disponivel', 'destino', 'origem', 'volume', 'descricao', 'categorias', 'dono_id']
+    chaves_model = ['disponivel', 'destino', 'origem', 'volume', 'descricao', 'categorias', 'dono_id', 'valor_frete', 'valor_frete_motorista']
     for key in data:
       if key not in chaves_model:
         raise RequiredKeysError(f'A chave ({key}) não é necessária.')
@@ -76,7 +76,7 @@ def criar_carga():
 
 
 @jwt_required()
-def listar_carga(carga_id: int):
+def listar_carga_id(carga_id: int):
   try:
     carga = CargaModel.query.get(carga_id)
 
@@ -135,29 +135,28 @@ def atualizar_carga(carga_id: int):
       setattr(carga, "previsao_entrega", nova_previsao)
       return carga.serialize()
 
-
-    colunas = [
-      "descricao", "destino", "origem", "horario_saida", "horario_chegada", "previsao_entrega", "volume"
-      ]
+    # colunas = [
+    #   "descricao", "destino", "origem", "horario_saida", "horario_chegada", "previsao_entrega", "volume"
+    #   ]
     
-    valor_frete = calcular_frete(
-      origem=data["origem"],
-      destino=data["destino"],
-      volume=data["volume"]
-    )
-    data["valor_frete"] = valor_frete
-    data["valor_frete_motorista"] = valor_frete - (valor_frete*0.3)
+    # valor_frete = calcular_frete(
+    #   origem=carga.origem,
+    #   destino=carga.destino,
+    #   volume=carga.volume
+    # )
+    # carga.valor_frete = valor_frete
+    # carga.valor_frete_motorista = valor_frete - (valor_frete*0.3)
 
-    for k, v in data.items():
-      if k in colunas:
-        setattr(carga, k, v)
-      else:
-        raise KeyError(k)
+    # for k, v in data.items():
+    #   if k in colunas:
+    #     setattr(carga, k, v)
+    #   else:
+    #     raise KeyError(k)
 
-    session.add(carga)
-    session.commit()
+    # session.add(carga)
+    # session.commit()
 
-    return carga.serialize()
+    # return carga.serialize()
   except KeyError as e:
     return {"msg": f"Chave(s) desnecessária(s) ou não é permitida a atualização: {e.args}."}, 400
   except PrevisaoEntregaFormatError as e:

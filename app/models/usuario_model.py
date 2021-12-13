@@ -31,7 +31,8 @@ class UsuarioModel(db.Model):
   email = Column(String, nullable=False, unique=True)
   celular = Column(String, nullable=False, unique=True)
   updated_at = Column(DateTime)
-  usuario_ativo = Column(Boolean, nullable=False)
+  usuario_ativo = Column(Boolean, default=True)
+  super_adm = Column(Boolean, default=False)
 
   cargas = relationship('CargaModel', backref='dono', uselist=False, cascade='all, delete-orphan')
 
