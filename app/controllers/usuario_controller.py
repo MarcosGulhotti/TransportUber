@@ -106,21 +106,6 @@ def atualizar_usuario():
 
 
 @jwt_required()
-def deletar_usuario():
-  try:
-    current_user = get_jwt_identity()
-    usuario_deletado = UsuarioModel.query.filter_by(
-      id=current_user).first_or_404(description="Usuário não encontrado")
-
-    current_app.db.session.delete(usuario_deletado)
-    current_app.db.session.commit()
-
-    return "", 204
-  except NotFound:
-    return jsonify({"erro": "Usuário não existe"}), 404  
-
-
-@jwt_required()
 def listar_usuarios():
   usuarios = (UsuarioModel.query.all())
 
