@@ -13,7 +13,7 @@ def criar_caminhao():
   data['marca'] = data['marca'].title()
   data['modelo'] = data['modelo'].title()
   data['motorista_id'] = current_user
-  print(data)
+  print(current_user)
 
   novo_caminhao = CaminhaoModel(**data)
 

@@ -5,15 +5,20 @@ from flask_jwt_extended import jwt_required
 
 @jwt_required()
 def criar_categoria():
-  session = current_app.db.session
-  data = request.get_json()
+  try:
+    session = current_app.db.session
+    data = request.get_json()
 
-  nova_categoria = CategoriaModel(**data)
+    nova_categoria = CategoriaModel(**data)
 
-  session.add(nova_categoria)
-  session.commit()
+    session.add(nova_categoria)
+    session.commit()
 
-  return jsonify(nova_categoria.serialize()), 201
+    return jsonify(nova_categoria.serialize()), 201
+  
+  except TypeError:
+    return {'msg': 'É necessário passar a chave (nome).'}, 400
+
 
 @jwt_required()
 def deletar_categoria(categoria_id):
