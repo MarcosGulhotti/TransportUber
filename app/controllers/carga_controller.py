@@ -259,4 +259,32 @@ def listar_cargas_entregues():
     return jsonify(serialize), 200
   except AttributeError:
     return {'error': "Não existem cargas entregues."}, 404
+
+def filtra_cargas(lista_query):
+  query_permitidas = ["origem", "destino", "disponivel", "codigo_uf_origem", "codigo_uf_destino"]
+  queries = []
+  lista_resultado = []
+
+  for nome_query, v in lista_query.items():
+    nome_query = nome_query.lower()
+    if nome_query in query_permitidas:
+      queries.append({nome_query: v})
+
+
+  cargas = CargaModel.query.all()
+  cargas = [carga.serialize() for carga in cargas]
+
+  for k, v in lista_query.items():
+    for item in cargas:
+      if item[k] == v:
+        lista_resultado.append(item)
+  
+  return lista_resultado
+
+@jwt_required()
+def listar_cargas():
+  data = request.args
+  return {"cargas": filtra_cargas(data)}
+
+
   
