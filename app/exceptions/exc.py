@@ -29,3 +29,6 @@ class CategoryTypeError(Exception):
 
 class PrevisaoEntregaFormatError(Exception):
   ...
+
+class PlacaFormatError(Exception):
+  ...

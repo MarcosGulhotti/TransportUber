@@ -153,7 +153,7 @@ def atualizar_senha():
   motorista = MotoristaModel.query.get(current_user)
   for k in data.keys():
       if k != "password":
-          return {"error": "Chaves aceitas: [password]"}, 409
+          return {"error": "Chave aceita: [password]"}, 409
 
   data["updated_at"] = datetime.now()
 
