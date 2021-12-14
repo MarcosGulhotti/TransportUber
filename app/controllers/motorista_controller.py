@@ -161,7 +161,7 @@ def atualizar_senha():
   try:
     if type(current_user) == int:
       raise NaoMotoristaError
-    motorista = MotoristaModel.query.get(current_user)
+    motorista = MotoristaModel.query.get(current_user['id'])
     for k in data.keys():
         if k != "password":
             return {"error": "Chave aceita: [password]"}, 409

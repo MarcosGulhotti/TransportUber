@@ -61,7 +61,7 @@ def criar_carga():
       volume=data["volume"]
     )
     data["valor_frete"] = valor_frete
-    data["valor_frete_motorista"] = valor_frete - (valor_frete*0.3)
+    data["valor_frete_motorista"] = valor_frete - (valor_frete*0.1)
 
     chaves_necessarias = ['disponivel', 'destino', 'origem', 'volume', 'descricao', 'categorias', 'codigo_uf_origem', 'codigo_uf_destino' ]
     for key in chaves_necessarias:
@@ -148,6 +148,8 @@ def calcular_previsão_de_entrega(origem, destino, horario_saida):
       time = 24 - data_chegada.hour
     elif data_chegada.hour < 8:
       time = 8 - data_chegada.hour
+  else:
+    time = data_chegada.hour
     
   data_chegada = data_chegada + timedelta(hours=time)
 
