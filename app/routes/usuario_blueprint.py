@@ -1,7 +1,7 @@
 from flask import Blueprint
 from app.controllers.avaliacao_controller import avaliar_usuario
 from app.controllers.usuario_controller import atualizar_senha, atualizar_usuario, listar_usuario_id, listar_usuarios
-from app.controllers.carga_controller import atualizar_carga, criar_carga, deletar_carga, listar_carga_id, listar_carga_origem, listar_carga_destino
+from app.controllers.carga_controller import atualizar_carga, criar_carga, deletar_carga, listar_carga_id, listar_carga_origem, listar_carga_destino, confirmar_entrega, listar_cargas_entregues
 
 bp_usuario = Blueprint('bp_usuario', __name__, url_prefix='/usuario')
 
@@ -14,7 +14,8 @@ bp_usuario.patch('/senha')(atualizar_senha)
 # Rotas Carga
 bp_usuario.post('/carga')(criar_carga)
 bp_usuario.get('/carga/<int:carga_id>')(listar_carga_id)
-# bp_usuario.post('/carga/<int:carga_id>/entrega_concluida')(entrega_concluida)
+bp_usuario.get('/carga/cargas_entregues')(listar_cargas_entregues)
+bp_usuario.post('/carga/<int:carga_id>/entrega_concluida')(confirmar_entrega)
 
 # virar uma rota só com query params
 bp_usuario.get('/carga/origem/<origem>')(listar_carga_origem)
