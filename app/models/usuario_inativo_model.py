@@ -1,3 +1,4 @@
+from sqlalchemy.sql.expression import null
 from app.configs.database import db
 from sqlalchemy import Column, Integer, ForeignKey
 from dataclasses import dataclass
