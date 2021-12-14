@@ -1,5 +1,6 @@
 from flask import jsonify, request, current_app
 from flask_jwt_extended.utils import get_jwt_identity
+from app.controllers.carga_controller import gerar_latitude_longitude
 from app.exceptions.exc import CelularFormatError, CpfFormatError, LoginKeysError, NaoMotoristaError, RequiredKeysError
 from app.models.avaliacao_usuario_motorista_model import AvaliacaoUsuarioMotoristaModel
 from app.models.motorista_model import MotoristaModel
@@ -10,6 +11,8 @@ from flask_jwt_extended import create_access_token
 from flask_jwt_extended import jwt_required
 from geopy.geocoders import Nominatim
 import time
+
+from app.models.municipios_model import MunicipioModel
 
 def criar_motorista():
   session = current_app.db.session
@@ -107,7 +110,7 @@ def busca_localizacao(latitude, longitude):
   coordenadas = f"{latitude}, {longitude}"
   time.sleep(3)
   try:
-        return geo.reverse(coordenadas, language="pt-br").raw
+      return geo.reverse(coordenadas, language="pt-br").raw
   except:
       return busca_localizacao(latitude, longitude)
 
@@ -120,23 +123,22 @@ def atualizar_localizacao():
     if type(current_user) == int:
       raise NaoMotoristaError
 
-    motorista = MotoristaModel.query.filter(MotoristaModel.email == current_user).first()
+    motorista = MotoristaModel.query.get(current_user['id'])
     for k in data.keys():
-        if k != "latitude" and k != "longitude":
-            return {"error": "Chaves aceitas: [latitude, longitude]"}, 409
+        if k != "cidade_atual" and k != "codigo_uf_cidade_atual":
+            return {"error": "Chaves aceitas: [cidade_atual, codigo_uf_cidade_atual]"}, 409
     
-    latitude = float(data["latitude"])
-    longitude = float(data["longitude"])
-    localizacao = busca_localizacao(latitude=latitude, longitude=longitude)
+    cidade = data['cidade_atual']
+    codigo_uf = data['codigo_uf_cidade_atual']
 
-    cidade = localizacao["address"]["village"]
-    estado = localizacao["address"]["state"]
-
+    coord_atual = gerar_latitude_longitude(cidade, codigo_uf)
+    lat, lon = coord_atual.split(',')
+    
     dados = {
       "updated_at": datetime.now(),
-      "localizacao": f"{cidade}/{estado}",
-      "latitude": latitude,
-      "longitude": longitude
+      "localizacao": cidade.lower(),
+      "latitude": lat,
+      "longitude": lon
     }
 
     for k, v in dados.items():

@@ -130,9 +130,12 @@ def listar_usuarios():
 
 @jwt_required()
 def listar_usuario_id(usuario_id: int):
-  usuario = UsuarioModel.query.filter_by(id=usuario_id).first()
+  try:
+    usuario = UsuarioModel.query.filter_by(id=usuario_id).first()
 
-  return jsonify(usuario.serialize()), 200
+    return jsonify(usuario.serialize()), 200
+  except AttributeError:
+    return {"error": "Usuario não existe."}, 404
 
 
 @jwt_required()
