@@ -32,6 +32,7 @@ def desativar_usuario():
     return jsonify(novo_inativo), 201
 
   except IntegrityError:
-    return {"error": "Usuário já foi desativado"}, 409
-    
+    return {"error": "Usuário ou Motorista já foi desativado."}, 409
+  except AttributeError:
+     return {"error": "Usuário ou Motorista não existe."}, 409
             

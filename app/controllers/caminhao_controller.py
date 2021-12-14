@@ -2,6 +2,7 @@ from flask import request, jsonify, current_app
 from flask_jwt_extended import jwt_required
 from flask_jwt_extended.utils import get_jwt_identity
 import sqlalchemy
+from app.exceptions.exc import PlacaFormatError
 from app.models.caminhao_model import CaminhaoModel
 from werkzeug.exceptions import NotFound
 
@@ -16,13 +17,14 @@ def criar_caminhao():
   data['placa'] = data['placa'].upper()
   data['motorista_id'] = current_user
 
-
   try:
     novo_caminhao = CaminhaoModel(**data)
     session.add(novo_caminhao)
     session.commit()
   except sqlalchemy.exc.IntegrityError:
     return {"error": "Caminhão com esta placa já foi registrado"}, 400
+  except PlacaFormatError as e:
+    return {'msg': str(e)}, 400
   return jsonify(novo_caminhao.serialize()), 201
 
 @jwt_required()
@@ -54,6 +56,8 @@ def atualizar_caminhao(caminhao_id: int):
     return caminhao.serialize()
   except KeyError as e:
     return {"error": f"Chaves faltantes: {e.args}"}
+  except PlacaFormatError as e:
+    return {'msg': str(e)}, 400
 
 @jwt_required()
 def deletar_caminhao(caminhao_id):
@@ -66,5 +70,5 @@ def deletar_caminhao(caminhao_id):
 
     return "", 204
   except NotFound:
-    return jsonify({"erro": "Caminhão não existe"}), 404  
+    return jsonify({"erro": "Caminhão não existe."}), 404  
       
