@@ -15,9 +15,8 @@ def criar_caminhao():
   data['marca'] = data['marca'].title()
   data['modelo'] = data['modelo'].title()
   data['placa'] = data['placa'].upper()
-  data['motorista_id'] = current_user
-
   try:
+    data['motorista_id'] = current_user['id']
     novo_caminhao = CaminhaoModel(**data)
     session.add(novo_caminhao)
     session.commit()
@@ -25,6 +24,8 @@ def criar_caminhao():
     return {"error": "Caminhão com esta placa já foi registrado"}, 400
   except PlacaFormatError as e:
     return {'msg': str(e)}, 400
+  except TypeError:
+    return {"error": "Você não esta logado como um motorista"}, 401
   return jsonify(novo_caminhao.serialize()), 201
 
 @jwt_required()
@@ -41,7 +42,9 @@ def atualizar_caminhao(caminhao_id: int):
     session = current_app.db.session
     caminhao = CaminhaoModel.query.get(caminhao_id)
     data = request.get_json()
-
+    current_user = get_jwt_identity()
+    if not current_user['id']:
+      raise TypeError
     colunas_validas = ["capacidade_de_carga", "placa"]
 
     for k, v in data.items():
@@ -58,10 +61,15 @@ def atualizar_caminhao(caminhao_id: int):
     return {"error": f"Chaves faltantes: {e.args}"}
   except PlacaFormatError as e:
     return {'msg': str(e)}, 400
+  except TypeError:
+    return {"error": "Você não esta logado como um motorista"}, 401
 
 @jwt_required()
 def deletar_caminhao(caminhao_id):
   try:
+    current_user = get_jwt_identity()
+    if not current_user['id']:
+      raise TypeError
     caminhao_deletado = CaminhaoModel.query.filter_by(
       id=caminhao_id).first_or_404(description="Caminhão não encontrado")
 
@@ -70,5 +78,7 @@ def deletar_caminhao(caminhao_id):
 
     return "", 204
   except NotFound:
-    return jsonify({"erro": "Caminhão não existe."}), 404  
+    return jsonify({"erro": "Caminhão não existe."}), 404
+  except TypeError:
+    return {"error": "Você não esta logado como um motorista"}, 401
       

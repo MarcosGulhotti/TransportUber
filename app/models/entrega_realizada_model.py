@@ -5,8 +5,6 @@ from app.models.caminhao_model import CaminhaoModel
 from app.models.carga_model import CargaModel
 from app.models.motorista_model import MotoristaModel
 from app.models.usuario_model import UsuarioModel
-# from app.models.motorista_model import MotoristaModel
-# from app.models.usuario_model import UsuarioModel
 
 @dataclass
 class EntregaRealizadaModel(db.Model):
@@ -17,8 +15,6 @@ class EntregaRealizadaModel(db.Model):
 
   id = Column(Integer, primary_key=True)
   carga_id = Column(Integer, ForeignKey('cargas.id'), unique=True)
-  # motorista_id = Column(Integer, ForeignKey('motoristas.id'), unique=True)
-  # dono_id = Column(Integer, ForeignKey('usuarios.id'), unique=True)
 
   def serialize(self):
     carga = CargaModel.query.get(self.carga_id)

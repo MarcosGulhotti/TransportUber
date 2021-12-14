@@ -38,3 +38,9 @@ class NotaInvalidaError(Exception):
 
 class EntregaNãoEstaEmMovimentoError(Exception):
   ...
+
+class NaoMotoristaError(Exception):
+  ...
+
+class NaoUsuarioError(Exception):
+  ...
