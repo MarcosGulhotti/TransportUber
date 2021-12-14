@@ -8,6 +8,7 @@ from app.models.categoria_model import CategoriaModel
 from werkzeug.exceptions import NotFound
 from haversine import haversine
 from app.models.entrega_realizada_model import EntregaRealizadaModel
+from app.models.municipios_model import MunicipioModel
 
 def calcular_frete(origem, destino, volume):
   """
@@ -26,6 +27,12 @@ def calcular_frete(origem, destino, volume):
 
   return total
 
+def gerar_latitude_longitude(cidade, codigo_uf):
+  cidade = cidade.lower()
+  municipio: MunicipioModel = MunicipioModel.query.filter_by(nome=cidade, codigo_uf=codigo_uf).first()
+  
+  return f'{municipio.latitude}, {municipio.longitude}'
+
 @jwt_required()
 def criar_carga():
   session = current_app.db.session
@@ -35,21 +42,26 @@ def criar_carga():
   try:
     if type(current_user) == dict:
       raise NaoUsuarioError
+    data['destino'] = data['destino'].lower()
+    data['origem'] = data['origem'].lower()
     data['dono_id'] = current_user
+    coord_origem = gerar_latitude_longitude(data['origem'], data['codigo_uf_origem'])
+    coord_destino = gerar_latitude_longitude(data['destino'], data['codigo_uf_destino'])
+    
     valor_frete = calcular_frete(
-      origem=data["origem"],
-      destino=data["destino"],
+      origem=coord_origem,
+      destino=coord_destino,
       volume=data["volume"]
     )
     data["valor_frete"] = valor_frete
     data["valor_frete_motorista"] = valor_frete - (valor_frete*0.3)
 
-    chaves_necessarias = ['disponivel', 'destino', 'origem', 'volume', 'descricao', 'categorias', ]
+    chaves_necessarias = ['disponivel', 'destino', 'origem', 'volume', 'descricao', 'categorias', 'codigo_uf_origem', 'codigo_uf_destino' ]
     for key in chaves_necessarias:
       if key not in data:
         raise RequiredKeysError(f'Está faltando a chave ({key}).')
-    
-    chaves_model = ['disponivel', 'destino', 'origem', 'volume', 'descricao', 'categorias', 'dono_id', 'valor_frete', 'valor_frete_motorista']
+
+    chaves_model = ['disponivel', 'destino', 'origem', 'volume', 'descricao', 'categorias', 'dono_id', 'valor_frete', 'valor_frete_motorista', 'codigo_uf_origem', 'codigo_uf_destino' ]
     for key in data:
       if key not in chaves_model:
         raise RequiredKeysError(f'A chave ({key}) não é necessária.')
@@ -189,40 +201,22 @@ def deletar_carga(carga_id):
 def atualizar_carga(carga_id: int):
   try:
     session = current_app.db.session
-    carga = CargaModel.query.get(carga_id)
+    carga: CargaModel = CargaModel.query.get(carga_id)
     data = request.get_json()
 
-    if carga.disponivel == False:
-      for k in data.keys():
-        if k != "previsao_entrega":
-            return {"msg": "Chaves aceitas: [previsao_entrega]."}, 409
+    if carga.disponivel:
+      colunas = ["descricao", "volume"]
 
-      nova_previsao = data["previsao_entrega"]
-      setattr(carga, "previsao_entrega", nova_previsao)
-      return carga.serialize()
+      for k, v in data.items():
+        if k in colunas:
+          setattr(carga, k, v)
+        else:
+          raise KeyError(k)
 
-    # colunas = [
-    #   "descricao", "destino", "origem", "horario_saida", "horario_chegada", "previsao_entrega", "volume"
-    #   ]
-    
-    # valor_frete = calcular_frete(
-    #   origem=carga.origem,
-    #   destino=carga.destino,
-    #   volume=carga.volume
-    # )
-    # carga.valor_frete = valor_frete
-    # carga.valor_frete_motorista = valor_frete - (valor_frete*0.3)
+      session.add(carga)
+      session.commit()
 
-    # for k, v in data.items():
-    #   if k in colunas:
-    #     setattr(carga, k, v)
-    #   else:
-    #     raise KeyError(k)
-
-    # session.add(carga)
-    # session.commit()
-
-    # return carga.serialize()
+    return carga.serialize()
   except KeyError as e:
     return {"msg": f"Chave(s) desnecessária(s) ou não é permitida a atualização: {e.args}."}, 400
   except PrevisaoEntregaFormatError as e:

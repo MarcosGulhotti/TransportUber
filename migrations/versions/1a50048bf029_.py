@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 2d0c811a5fad
+Revision ID: 1a50048bf029
 Revises: 
-Create Date: 2021-12-14 13:56:17.758363
+Create Date: 2021-12-14 15:50:17.650548
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '2d0c811a5fad'
+revision = '1a50048bf029'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -43,6 +43,14 @@ def upgrade():
     sa.UniqueConstraint('cnh'),
     sa.UniqueConstraint('cpf'),
     sa.UniqueConstraint('email')
+    )
+    op.create_table('municipios',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('nome', sa.String(), nullable=False),
+    sa.Column('latitude', sa.String(), nullable=False),
+    sa.Column('longitude', sa.String(), nullable=False),
+    sa.Column('codigo_uf', sa.Integer(), nullable=False),
+    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('usuarios',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -87,8 +95,10 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('disponivel', sa.Boolean(), nullable=False),
     sa.Column('descricao', sa.String(), nullable=True),
-    sa.Column('destino', sa.String(), nullable=True),
+    sa.Column('destino', sa.String(), nullable=False),
+    sa.Column('codigo_uf_destino', sa.Integer(), nullable=False),
     sa.Column('origem', sa.String(), nullable=False),
+    sa.Column('codigo_uf_origem', sa.Integer(), nullable=False),
     sa.Column('horario_saida', sa.DateTime(), nullable=True),
     sa.Column('horario_chegada', sa.DateTime(), nullable=True),
     sa.Column('previsao_entrega', sa.DateTime(), nullable=True),
@@ -127,6 +137,7 @@ def downgrade():
     op.drop_table('caminhoes')
     op.drop_table('avaliacoes_usuario_motorista')
     op.drop_table('usuarios')
+    op.drop_table('municipios')
     op.drop_table('motoristas')
     op.drop_table('categorias')
     # ### end Alembic commands ###

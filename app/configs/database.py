@@ -14,3 +14,4 @@ def init_app(app: Flask):
   from app.models.categoria_model import CategoriaModel
   from app.models.avaliacao_usuario_motorista_model import AvaliacaoUsuarioMotoristaModel
   from app.models.entrega_realizada_model import EntregaRealizadaModel
+  from app.models.municipios_model import MunicipioModel
