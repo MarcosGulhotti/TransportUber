@@ -1,6 +1,7 @@
 from flask import jsonify, request, current_app
 from flask_jwt_extended.utils import get_jwt_identity
 from app.exceptions.exc import CelularFormatError, CpfFormatError, LoginKeysError, RequiredKeysError
+from app.models.avaliacao_usuario_motorista_model import AvaliacaoUsuarioMotoristaModel
 from app.models.usuario_model import UsuarioModel
 from datetime import datetime
 from psycopg2.errors import UniqueViolation
@@ -33,8 +34,17 @@ def criar_usuario():
 
     novo_usuario = UsuarioModel(**data)
     novo_usuario.password = password_to_hash
-
     session.add(novo_usuario)
+
+    usuario_id = UsuarioModel.query.filter_by(email=novo_usuario.email).first().id
+
+    data = {
+      "nota": 0, 
+      "usuario_id": usuario_id
+    }
+    nova_avaliacao = AvaliacaoUsuarioMotoristaModel(**data)
+    session.add(nova_avaliacao)
+
     session.commit()
 
     return jsonify(novo_usuario), 201

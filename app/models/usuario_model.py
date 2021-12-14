@@ -36,6 +36,7 @@ class UsuarioModel(db.Model):
   super_adm = Column(Boolean, default=False)
 
   cargas = relationship('CargaModel', backref='dono', uselist=False, cascade='all, delete-orphan')
+  notas = relationship('AvaliacaoUsuarioMotoristaModel', backref='usuario', uselist=False, cascade='all, delete-orphan')
 
   @validates('cpf')
   def valida_cpf(self, key, cpf):
@@ -76,5 +77,6 @@ class UsuarioModel(db.Model):
       'email': self.email,
       'celular': self.celular,
       'updated_at': self.updated_at,
-      'cargas': CargaModel.query.filter_by(dono_id=self.id).all()
+      'cargas': CargaModel.query.filter_by(dono_id=self.id).all(),
+      'nota': self.notas.nota
     }

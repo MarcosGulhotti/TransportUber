@@ -1,15 +1,15 @@
 from datetime import timedelta, datetime
-from flask import json, request, jsonify, current_app
+from flask import request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 import sqlalchemy
+from sqlalchemy.exc import IntegrityError
 from app.exceptions.exc import CategoryTypeError, RequiredKeysError,PrevisaoEntregaFormatError
-from app.models.caminhao_model import CaminhaoModel
 from app.models.carga_model import CargaModel
 from app.models.categoria_model import CategoriaModel
 from werkzeug.exceptions import NotFound
 from haversine import haversine
 
-from app.models.motorista_model import MotoristaModel
+from app.models.entrega_realizada_model import EntregaRealizadaModel
 
 def calcular_frete(origem, destino, volume):
   """
@@ -163,7 +163,7 @@ def deletar_carga(carga_id):
 @jwt_required()
 def atualizar_carga(carga_id: int):
   try:
-    session = current_app.db.session
+    # session = current_app.db.session
     carga = CargaModel.query.get(carga_id)
     data = request.get_json()
 
@@ -204,3 +204,18 @@ def atualizar_carga(carga_id: int):
     return {'msg': str(e)}, 400
   except AttributeError:
     return jsonify({"msg": "Carga não existe."}), 404
+
+@jwt_required()
+def entrega_concluida(carga_id: int):
+  session = current_app.db.session
+  try:
+    data = {"carga_id": carga_id}
+
+    entrega = EntregaRealizadaModel(**data)
+
+    session.add(entrega)
+    session.commit()
+
+    return {'msg': 'Entrega concluída com sucesso.'}, 200
+  except IntegrityError:
+    return {'msg': "Essa carga não existe."}, 404
