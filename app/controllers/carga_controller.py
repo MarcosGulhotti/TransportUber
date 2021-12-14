@@ -45,9 +45,16 @@ def criar_carga():
     data['destino'] = data['destino'].lower()
     data['origem'] = data['origem'].lower()
     data['dono_id'] = current_user
-    coord_origem = gerar_latitude_longitude(data['origem'], data['codigo_uf_origem'])
-    coord_destino = gerar_latitude_longitude(data['destino'], data['codigo_uf_destino'])
-    
+
+    try:
+      coord_origem = gerar_latitude_longitude(data['origem'], data['codigo_uf_origem'])
+    except AttributeError:
+      return {'error': 'Origem ou codigo_UF não existem.'}, 404
+    try:
+      coord_destino = gerar_latitude_longitude(data['destino'], data['codigo_uf_destino'])
+    except AttributeError:
+      return {'error': 'Destino ou codigo_UF não existem.'}, 404
+
     valor_frete = calcular_frete(
       origem=coord_origem,
       destino=coord_destino,
@@ -161,7 +168,11 @@ def pegar_carga(carga_id: int):
     setattr(carga, 'horario_saida', datetime.now())
     setattr(carga, "disponivel", not carga.disponivel)
     setattr(carga, 'caminhao_id', data["caminhao_id"])
-    previsão_entrega = calcular_previsão_de_entrega(carga.origem, carga.destino, datetime.now())
+
+    coord_origem = gerar_latitude_longitude(carga.origem, carga.codigo_uf_origem)
+    coord_destino = gerar_latitude_longitude(carga.destino, carga.codigo_uf_destino)
+
+    previsão_entrega = calcular_previsão_de_entrega(coord_origem, coord_destino, datetime.now())
 
     setattr(carga, "previsao_entrega", previsão_entrega)
     session.add(carga)
