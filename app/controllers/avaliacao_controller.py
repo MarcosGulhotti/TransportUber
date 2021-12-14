@@ -1,7 +1,7 @@
 from flask import request, current_app
 from flask_jwt_extended import jwt_required
 from flask_jwt_extended.utils import get_jwt_identity
-from app.exceptions.exc import NaoUsuarioError, NotaInvalidaError
+from app.exceptions.exc import NotaInvalidaError
 from app.models.avaliacao_usuario_motorista_model import AvaliacaoUsuarioMotoristaModel
 from sqlalchemy.exc import IntegrityError
 
