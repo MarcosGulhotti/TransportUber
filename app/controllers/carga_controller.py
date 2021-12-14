@@ -2,15 +2,13 @@ from datetime import timedelta, datetime
 from flask import request, jsonify, current_app, sessions
 from flask_jwt_extended import jwt_required, get_jwt_identity
 import sqlalchemy
-from app.exceptions.exc import CategoryTypeError, RequiredKeysError,PrevisaoEntregaFormatError, EntregaNãoEstaEmMovimentoError
-from app.models.caminhao_model import CaminhaoModel
+from app.exceptions.exc import CategoryTypeError, NaoMotoristaError, NaoUsuarioError, RequiredKeysError,PrevisaoEntregaFormatError, EntregaNãoEstaEmMovimentoError
 from app.models.carga_model import CargaModel
 from app.models.categoria_model import CategoriaModel
 from werkzeug.exceptions import NotFound
 from haversine import haversine
 from app.models.entrega_realizada_model import EntregaRealizadaModel
 
-from app.models.motorista_model import MotoristaModel
 
 def calcular_frete(origem, destino, volume):
   """
@@ -36,6 +34,8 @@ def criar_carga():
   current_user = get_jwt_identity()
   
   try:
+    if type(current_user) == dict:
+      raise NaoUsuarioError
     data['dono_id'] = current_user
     valor_frete = calcular_frete(
       origem=data["origem"],
@@ -80,6 +80,8 @@ def criar_carga():
     return {'msg': str(e)}, 400
   except CategoryTypeError as e:
     return e.message, 400
+  except NaoUsuarioError:
+    return {"error": "Você não está logado como um usuario"}, 401
 
 
 @jwt_required()
@@ -136,8 +138,10 @@ def calcular_previsão_de_entrega(origem, destino, horario_saida):
 @jwt_required()
 def pegar_carga(carga_id: int):  
   data = request.get_json()
-
+  current_user = get_jwt_identity()
   try:
+    if type(current_user) != dict:
+      raise NaoMotoristaError
     session = current_app.db.session
     carga: CargaModel = CargaModel.query.get(carga_id)
     if carga.disponivel == False:
@@ -159,17 +163,27 @@ def pegar_carga(carga_id: int):
     return jsonify({"msg": "Carga não existe."}), 404
   except sqlalchemy.exc.IntegrityError:
     return {"error": "caminhão não encontrado no banco"}, 404
+  except NaoMotoristaError:
+    return {"error": "Você não esta logado como motorista"}, 401
 
 @jwt_required()
 def deletar_carga(carga_id):
+  current_user = get_jwt_identity()
   try:
+    if type(current_user) == dict:
+      raise NaoUsuarioError
     carga_deletada = CargaModel.query.filter_by(
       id=carga_id).first_or_404(description="Carga não encontrada")
+
     current_app.db.session.delete(carga_deletada)
     current_app.db.session.commit()
     return "", 204
   except NotFound:
     return jsonify({"msg": "Carga não existe."}), 404
+  except NaoUsuarioError:
+    return {"error": "Você não esta logado como um usuario"}, 401
+  except sqlalchemy.exc.IntegrityError:
+    return {"error": "Carga já foi entregue ao usuario"}, 401
 
 
 @jwt_required()

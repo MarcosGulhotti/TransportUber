@@ -73,7 +73,7 @@ def acesso_motorista():
         raise LoginKeysError(f'A chave ({key}) é necessária.')
     
     if motorista.verify_password(data['password']):
-      access_token = create_access_token(identity=motorista.id)
+      access_token = create_access_token(identity=motorista)
       return jsonify(access_token=access_token), 200
     else:
       return {'msg': "Sem autorização"}, 401
@@ -116,31 +116,36 @@ def atualizar_localizacao():
   session = current_app.db.session
   data = request.get_json()
   current_user = get_jwt_identity()
+  try:
+    if not current_user['id']:
+      raise TypeError
 
-  motorista = MotoristaModel.query.filter(MotoristaModel.email == current_user).first()
-  for k in data.keys():
-      if k != "latitude" and k != "longitude":
-          return {"error": "Chaves aceitas: [latitude, longitude]"}, 409
-  
-  latitude = float(data["latitude"])
-  longitude = float(data["longitude"])
-  localizacao = busca_localizacao(latitude=latitude, longitude=longitude)
+    motorista = MotoristaModel.query.filter(MotoristaModel.email == current_user).first()
+    for k in data.keys():
+        if k != "latitude" and k != "longitude":
+            return {"error": "Chaves aceitas: [latitude, longitude]"}, 409
+    
+    latitude = float(data["latitude"])
+    longitude = float(data["longitude"])
+    localizacao = busca_localizacao(latitude=latitude, longitude=longitude)
 
-  cidade = localizacao["address"]["village"]
-  estado = localizacao["address"]["state"]
+    cidade = localizacao["address"]["village"]
+    estado = localizacao["address"]["state"]
 
-  dados = {
-    "updated_at": datetime.now(),
-    "localizacao": f"{cidade}/{estado}",
-    "latitude": latitude,
-    "longitude": longitude
-  }
+    dados = {
+      "updated_at": datetime.now(),
+      "localizacao": f"{cidade}/{estado}",
+      "latitude": latitude,
+      "longitude": longitude
+    }
 
-  for k, v in dados.items():
-    setattr(motorista, k, v)
+    for k, v in dados.items():
+      setattr(motorista, k, v)
 
-  session.add(motorista)
-  session.commit()
+    session.add(motorista)
+    session.commit()
+  except TypeError:
+    return {"error": "Você não esta logado como um motorista"}, 401
 
   return {"localizacao": motorista.localizacao}
   
@@ -150,18 +155,23 @@ def atualizar_senha():
   data = request.get_json()
   current_user = get_jwt_identity()
 
-  motorista = MotoristaModel.query.get(current_user)
-  for k in data.keys():
-      if k != "password":
-          return {"error": "Chave aceita: [password]"}, 409
+  try:
+    if not current_user['id']:
+        raise TypeError
+    motorista = MotoristaModel.query.get(current_user)
+    for k in data.keys():
+        if k != "password":
+            return {"error": "Chave aceita: [password]"}, 409
 
-  data["updated_at"] = datetime.now()
+    data["updated_at"] = datetime.now()
 
-  for k, v in data.items():
-    setattr(motorista, k, v)
+    for k, v in data.items():
+      setattr(motorista, k, v)
 
-  session.add(motorista)
-  session.commit()
-  
+    session.add(motorista)
+    session.commit()
+  except TypeError:
+    return {"error": "Você não esta logado como um motorista"}, 401
+    
   return {"msg": "Senha atualizada"}, 200
 
