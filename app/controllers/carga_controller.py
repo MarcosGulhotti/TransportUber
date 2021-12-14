@@ -1,5 +1,5 @@
 from datetime import timedelta, datetime
-from flask import request, jsonify, current_app, sessions
+from flask import request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 import sqlalchemy
 from app.exceptions.exc import CategoryTypeError, NaoMotoristaError, NaoUsuarioError, RequiredKeysError,PrevisaoEntregaFormatError, EntregaNãoEstaEmMovimentoError
@@ -8,7 +8,6 @@ from app.models.categoria_model import CategoriaModel
 from werkzeug.exceptions import NotFound
 from haversine import haversine
 from app.models.entrega_realizada_model import EntregaRealizadaModel
-
 
 def calcular_frete(origem, destino, volume):
   """
