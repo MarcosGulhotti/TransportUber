@@ -1,4 +1,4 @@
-from flask import request, current_app
+from flask import current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.models.motorista_model import MotoristaModel
 from app.models.usuario_model import UsuarioModel

@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 21c1a2a6013f
+Revision ID: 2d0c811a5fad
 Revises: 
-Create Date: 2021-12-14 10:33:33.965033
+Create Date: 2021-12-14 13:56:17.758363
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '21c1a2a6013f'
+revision = '2d0c811a5fad'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -83,16 +83,6 @@ def upgrade():
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('placa')
     )
-    op.create_table('usuarios_inativos',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('usuario_id', sa.Integer(), nullable=True),
-    sa.Column('motorista_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['motorista_id'], ['motoristas.id'], ),
-    sa.ForeignKeyConstraint(['usuario_id'], ['usuarios.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('motorista_id'),
-    sa.UniqueConstraint('usuario_id')
-    )
     op.create_table('cargas',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('disponivel', sa.Boolean(), nullable=False),
@@ -134,7 +124,6 @@ def downgrade():
     op.drop_table('entregas_realizadas')
     op.drop_table('cargas_categorias')
     op.drop_table('cargas')
-    op.drop_table('usuarios_inativos')
     op.drop_table('caminhoes')
     op.drop_table('avaliacoes_usuario_motorista')
     op.drop_table('usuarios')
