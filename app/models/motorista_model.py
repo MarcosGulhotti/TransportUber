@@ -6,7 +6,6 @@ import re
 from app.exceptions.exc import CelularFormatError, CpfFormatError
 from dataclasses import dataclass
 from werkzeug.security import generate_password_hash, check_password_hash
-
 from app.models.caminhao_model import CaminhaoModel
 
 @dataclass
@@ -43,7 +42,8 @@ class MotoristaModel(db.Model):
   longitude = Column(Float)
 
   caminhoes = relationship('CaminhaoModel', backref='motorista', uselist=False, cascade='all, delete-orphan')
-
+  notas = relationship('AvaliacaoUsuarioMotoristaModel', backref='motorista', uselist=False, cascade='all, delete-orphan')
+  
   @validates('cpf')
   def valida_cpf(self, key, cpf):
     pattern = "(^\d{3}\.\d{3}\.\d{3}\-\d{2}$)"
@@ -85,5 +85,6 @@ class MotoristaModel(db.Model):
       'cnh': self.cnh,
       'created_at': self.created_at,
       'updated_at': self.updated_at,
-      'caminhoes': CaminhaoModel.query.filter_by(motorista_id=self.id).all()
+      'caminhoes': CaminhaoModel.query.filter_by(motorista_id=self.id).all(),
+      'nota': self.notas.nota
     }

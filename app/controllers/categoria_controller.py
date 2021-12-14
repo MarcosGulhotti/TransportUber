@@ -3,7 +3,6 @@ from flask_jwt_extended.utils import get_jwt_identity
 from app.models.categoria_model import CategoriaModel
 from werkzeug.exceptions import NotFound
 from flask_jwt_extended import jwt_required
-
 from app.models.usuario_model import UsuarioModel
 
 @jwt_required()

@@ -16,9 +16,9 @@ def criar_caminhao():
   data['placa'] = data['placa'].upper()
   data['motorista_id'] = current_user
 
-  novo_caminhao = CaminhaoModel(**data)
 
   try:
+    novo_caminhao = CaminhaoModel(**data)
     session.add(novo_caminhao)
     session.commit()
   except sqlalchemy.exc.IntegrityError:

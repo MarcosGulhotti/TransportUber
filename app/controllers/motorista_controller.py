@@ -1,18 +1,15 @@
 from flask import jsonify, request, current_app
 from flask_jwt_extended.utils import get_jwt_identity
 from app.exceptions.exc import CelularFormatError, CpfFormatError, LoginKeysError, RequiredKeysError
+from app.models.avaliacao_usuario_motorista_model import AvaliacaoUsuarioMotoristaModel
 from app.models.motorista_model import MotoristaModel
 from datetime import datetime
 from psycopg2.errors import UniqueViolation
 from sqlalchemy.exc import IntegrityError
 from flask_jwt_extended import create_access_token
-from werkzeug.exceptions import NotFound
 from flask_jwt_extended import jwt_required
 from geopy.geocoders import Nominatim
 import time
-import json
-
-
 
 def criar_motorista():
   session = current_app.db.session
@@ -37,8 +34,16 @@ def criar_motorista():
 
     password_to_hash = data.pop('password')
     novo_motorista.password = password_to_hash
-
     session.add(novo_motorista)
+
+    motorista_id = MotoristaModel.query.filter_by(email=novo_motorista.email).first().id
+
+    data = {
+      "nota": 0, 
+      "motorista_id": motorista_id
+    }
+    nova_avaliacao = AvaliacaoUsuarioMotoristaModel(**data)
+    session.add(nova_avaliacao)
     session.commit()
 
     return jsonify(novo_motorista), 201
