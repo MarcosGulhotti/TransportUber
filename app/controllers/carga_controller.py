@@ -1,13 +1,14 @@
 from datetime import timedelta, datetime
-from flask import request, jsonify, current_app
+from flask import request, jsonify, current_app, sessions
 from flask_jwt_extended import jwt_required, get_jwt_identity
 import sqlalchemy
-from app.exceptions.exc import CategoryTypeError, RequiredKeysError,PrevisaoEntregaFormatError
+from app.exceptions.exc import CategoryTypeError, RequiredKeysError,PrevisaoEntregaFormatError, EntregaNãoEstaEmMovimentoError
 from app.models.caminhao_model import CaminhaoModel
 from app.models.carga_model import CargaModel
 from app.models.categoria_model import CategoriaModel
 from werkzeug.exceptions import NotFound
 from haversine import haversine
+from app.models.entrega_realizada_model import EntregaRealizadaModel
 
 from app.models.motorista_model import MotoristaModel
 
@@ -215,3 +216,33 @@ def atualizar_carga(carga_id: int):
     return {'msg': str(e)}, 400
   except AttributeError:
     return jsonify({"msg": "Carga não existe."}), 404
+
+
+def confirmar_entrega(carga_id: int):
+  session = current_app.db.session
+  try:
+    data = {"carga_id": carga_id}
+
+    carga: CargaModel = CargaModel.query.get(carga_id)
+
+    if carga.disponivel == True:
+      raise EntregaNãoEstaEmMovimentoError
+
+    entrega_realizada = EntregaRealizadaModel(**data)
+    session.add(entrega_realizada)
+    session.commit()
+  except sqlalchemy.exc.IntegrityError:
+    return {"error": "carga não existe ou já foi entregue"}, 404
+  except EntregaNãoEstaEmMovimentoError:
+    return {"error": "Carga ainda não saiu para entrega"}, 404
+
+  return {"msg": "Entrega da carga realizada com sucesso!!"}, 200
+
+
+def listar_cargas_entregues():
+  entregas_realizadas = EntregaRealizadaModel.query.all()
+  serialize = [entrega.serialize() for entrega in entregas_realizadas]
+
+  return jsonify(serialize), 200
+
+  

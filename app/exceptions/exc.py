@@ -35,3 +35,6 @@ class PlacaFormatError(Exception):
 
 class NotaInvalidaError(Exception):
   ...
+
+class EntregaNãoEstaEmMovimentoError(Exception):
+  ...
