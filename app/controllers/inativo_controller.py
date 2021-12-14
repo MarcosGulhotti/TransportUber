@@ -36,3 +36,30 @@ def desativar_usuario():
   except AttributeError:
      return {"error": "Usuário ou Motorista não existe."}, 409
             
+@jwt_required()
+def reativar_usuario():
+  try:
+    session = current_app.db.session
+    data = request.get_json()
+    
+    if 'motorista_id' in data.keys():
+      usuario_ativado: MotoristaModel = MotoristaModel.query.filter_by(id=data['motorista_id']).first()
+
+      setattr(usuario_ativado, 'motorista_ativo', True)
+
+
+    elif 'usuario_id' in data.keys():
+      usuario_ativado: UsuarioModel = UsuarioModel.query.filter_by(id=data['usuario_id']).first()
+
+      setattr(usuario_ativado, 'usuario_ativo', True)
+
+    
+    session.commit()
+
+    return jsonify({"Msg": "Usuário reativado!"}), 200
+
+  except AttributeError:
+
+    return jsonify({"error": "Usuário não existe"}), 404 
+    
+
