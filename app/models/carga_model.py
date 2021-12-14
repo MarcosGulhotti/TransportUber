@@ -1,10 +1,8 @@
-from sqlalchemy.orm import backref, relationship, validates
-import re
+from sqlalchemy.orm import backref, relationship
 from app.configs.database import db
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, Boolean, DateTime
 from dataclasses import dataclass
 from app.models.caminhao_model import CaminhaoModel
-from app.exceptions.exc import PrevisaoEntregaFormatError
 
 @dataclass
 class CargaModel(db.Model):
@@ -29,7 +27,7 @@ class CargaModel(db.Model):
   origem = Column(String, nullable=False)
   horario_saida = Column(DateTime)
   horario_chegada = Column(DateTime)
-  previsao_entrega = Column(String)
+  previsao_entrega = Column(DateTime)
   volume = Column(Float, nullable=False)
   caminhao_id = Column(Integer, ForeignKey('caminhoes.id'))
   dono_id = Column(Integer, ForeignKey('usuarios.id'), nullable=False)
@@ -38,15 +36,6 @@ class CargaModel(db.Model):
 
 
   caminhao = relationship('CaminhaoModel', backref=backref('carga', uselist=False), uselist=False)
-  
-  @validates('previsao_entrega')
-  def valida_previsao_entrega(self, key, previsao_entrega):
-    pattern = "(^\d{2}\/\d{2}\/\d{4}$)"
-
-    if not re.search(pattern, previsao_entrega):
-      raise PrevisaoEntregaFormatError("Formato para previsão de entrega inválido. Formato aceito = xx/xx/xxxx")
-
-    return previsao_entrega
 
   def serialize(self):
     return {

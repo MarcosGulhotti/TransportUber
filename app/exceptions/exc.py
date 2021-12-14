@@ -32,3 +32,6 @@ class PrevisaoEntregaFormatError(Exception):
 
 class PlacaFormatError(Exception):
   ...
+
+class NotaInvalidaError(Exception):
+  ...
