@@ -1,6 +1,6 @@
 from flask import jsonify, request, current_app
 from flask_jwt_extended.utils import get_jwt_identity
-from app.exceptions.exc import CelularFormatError, CpfFormatError, LoginKeysError, RequiredKeysError
+from app.exceptions.exc import CelularFormatError, CpfFormatError, LoginKeysError, NaoMotoristaError, RequiredKeysError
 from app.models.avaliacao_usuario_motorista_model import AvaliacaoUsuarioMotoristaModel
 from app.models.motorista_model import MotoristaModel
 from datetime import datetime
@@ -117,8 +117,8 @@ def atualizar_localizacao():
   data = request.get_json()
   current_user = get_jwt_identity()
   try:
-    if not current_user['id']:
-      raise TypeError
+    if type(current_user) == int:
+      raise NaoMotoristaError
 
     motorista = MotoristaModel.query.filter(MotoristaModel.email == current_user).first()
     for k in data.keys():
@@ -144,7 +144,8 @@ def atualizar_localizacao():
 
     session.add(motorista)
     session.commit()
-  except TypeError:
+  
+  except NaoMotoristaError:
     return {"error": "Você não esta logado como um motorista"}, 401
 
   return {"localizacao": motorista.localizacao}
@@ -156,8 +157,8 @@ def atualizar_senha():
   current_user = get_jwt_identity()
 
   try:
-    if not current_user['id']:
-        raise TypeError
+    if type(current_user) == int:
+      raise NaoMotoristaError
     motorista = MotoristaModel.query.get(current_user)
     for k in data.keys():
         if k != "password":
@@ -170,7 +171,8 @@ def atualizar_senha():
 
     session.add(motorista)
     session.commit()
-  except TypeError:
+ 
+  except NaoMotoristaError:
     return {"error": "Você não esta logado como um motorista"}, 401
     
   return {"msg": "Senha atualizada"}, 200

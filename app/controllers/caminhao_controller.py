@@ -2,7 +2,7 @@ from flask import request, jsonify, current_app
 from flask_jwt_extended import jwt_required
 from flask_jwt_extended.utils import get_jwt_identity
 import sqlalchemy
-from app.exceptions.exc import PlacaFormatError
+from app.exceptions.exc import NaoMotoristaError, PlacaFormatError
 from app.models.caminhao_model import CaminhaoModel
 from werkzeug.exceptions import NotFound
 
@@ -16,15 +16,18 @@ def criar_caminhao():
   data['modelo'] = data['modelo'].title()
   data['placa'] = data['placa'].upper()
   try:
+    if type(current_user) == int:
+      raise NaoMotoristaError
     data['motorista_id'] = current_user['id']
     novo_caminhao = CaminhaoModel(**data)
     session.add(novo_caminhao)
     session.commit()
+
   except sqlalchemy.exc.IntegrityError:
     return {"error": "Caminhão com esta placa já foi registrado"}, 400
   except PlacaFormatError as e:
     return {'msg': str(e)}, 400
-  except TypeError:
+  except NaoMotoristaError:
     return {"error": "Você não esta logado como um motorista"}, 401
   return jsonify(novo_caminhao.serialize()), 201
 
@@ -43,8 +46,8 @@ def atualizar_caminhao(caminhao_id: int):
     caminhao = CaminhaoModel.query.get(caminhao_id)
     data = request.get_json()
     current_user = get_jwt_identity()
-    if not current_user['id']:
-      raise TypeError
+    if type(current_user) == int:
+      raise NaoMotoristaError
     colunas_validas = ["capacidade_de_carga", "placa"]
 
     for k, v in data.items():
@@ -57,19 +60,20 @@ def atualizar_caminhao(caminhao_id: int):
     session.commit()
 
     return caminhao.serialize()
+
   except KeyError as e:
     return {"error": f"Chaves faltantes: {e.args}"}
   except PlacaFormatError as e:
     return {'msg': str(e)}, 400
-  except TypeError:
+  except NaoMotoristaError:
     return {"error": "Você não esta logado como um motorista"}, 401
 
 @jwt_required()
 def deletar_caminhao(caminhao_id):
   try:
     current_user = get_jwt_identity()
-    if not current_user['id']:
-      raise TypeError
+    if type(current_user) == int:
+      raise NaoMotoristaError
     caminhao_deletado = CaminhaoModel.query.filter_by(
       id=caminhao_id).first_or_404(description="Caminhão não encontrado")
 
@@ -77,8 +81,9 @@ def deletar_caminhao(caminhao_id):
     current_app.db.session.commit()
 
     return "", 204
+    
   except NotFound:
     return jsonify({"erro": "Caminhão não existe."}), 404
-  except TypeError:
+  except NaoMotoristaError:
     return {"error": "Você não esta logado como um motorista"}, 401
       

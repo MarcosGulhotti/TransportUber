@@ -231,10 +231,13 @@ def atualizar_carga(carga_id: int):
   except AttributeError:
     return jsonify({"msg": "Carga não existe."}), 404
 
-
+@jwt_required()
 def confirmar_entrega(carga_id: int):
   session = current_app.db.session
+  current_user = get_jwt_identity()
   try:
+    if type(current_user) == dict:
+      raise NaoUsuarioError
     data = {"carga_id": carga_id}
 
     carga: CargaModel = CargaModel.query.get(carga_id)
@@ -249,14 +252,18 @@ def confirmar_entrega(carga_id: int):
     return {"error": "carga não existe ou já foi entregue"}, 404
   except EntregaNãoEstaEmMovimentoError:
     return {"error": "Carga ainda não saiu para entrega"}, 404
+  except NaoUsuarioError:
+    return {"error": "Você não esta logado como um usuario"}, 401
 
   return {"msg": "Entrega da carga realizada com sucesso!!"}, 200
 
-
+@jwt_required()
 def listar_cargas_entregues():
-  entregas_realizadas = EntregaRealizadaModel.query.all()
-  serialize = [entrega.serialize() for entrega in entregas_realizadas]
+  try:
+    entregas_realizadas = EntregaRealizadaModel.query.all()
+    serialize = [entrega.serialize() for entrega in entregas_realizadas]
 
-  return jsonify(serialize), 200
-
+    return jsonify(serialize), 200
+  except AttributeError:
+    return {'error': "Não existem cargas entregues."}, 404
   

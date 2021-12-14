@@ -1,6 +1,6 @@
 from flask import jsonify, request, current_app
 from flask_jwt_extended.utils import get_jwt_identity
-from app.exceptions.exc import CelularFormatError, CpfFormatError, LoginKeysError, RequiredKeysError
+from app.exceptions.exc import CelularFormatError, CpfFormatError, LoginKeysError, NaoUsuarioError, RequiredKeysError
 from app.models.avaliacao_usuario_motorista_model import AvaliacaoUsuarioMotoristaModel
 from app.models.usuario_model import UsuarioModel
 from datetime import datetime
@@ -92,6 +92,8 @@ def atualizar_usuario():
   current_user = get_jwt_identity()
 
   try:
+    if type(current_user) == dict:
+      raise NaoUsuarioError
     usuario = UsuarioModel.query.get(current_user)
     autorizado_mudar = ['password', 'email', 'celular']
 
@@ -112,7 +114,9 @@ def atualizar_usuario():
     return jsonify(user.serialize()), 200
     
   except NotFound:
-    return jsonify({"msg": "Usuário não existe"}), 404  
+    return jsonify({"msg": "Usuário não existe"}), 404
+  except NaoUsuarioError:
+    return {"error": "Você não esta logado como um usuario"}, 401
 
 
 @jwt_required()
@@ -137,17 +141,22 @@ def atualizar_senha():
   data = request.get_json()
   current_user = get_jwt_identity()
 
-  usuario = UsuarioModel.query.get(current_user)
-  for k in data.keys():
-      if k != "password":
-          return {"error": "Chaves aceitas: [password]"}, 409
+  try:
+    if type(current_user) == dict:
+      raise NaoUsuarioError
+    usuario = UsuarioModel.query.get(current_user)
+    for k in data.keys():
+        if k != "password":
+            return {"error": "Chaves aceitas: [password]"}, 409
 
-  data["updated_at"] = datetime.now()
+    data["updated_at"] = datetime.now()
 
-  for k, v in data.items():
-    setattr(usuario, k, v)
+    for k, v in data.items():
+      setattr(usuario, k, v)
 
-  session.add(usuario)
-  session.commit()
-  
-  return {"msg": "Senha atualizada"}, 200
+    session.add(usuario)
+    session.commit()
+    
+    return {"msg": "Senha atualizada"}, 200
+  except NaoUsuarioError:
+    return {"error": "Você não esta logado como um usuario"}, 401
