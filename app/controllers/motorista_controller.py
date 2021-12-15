@@ -197,4 +197,4 @@ def atualizar_motorista():
   except NotFound:
     return jsonify({"msg": "Usuário não existe"}), 404
   except NaoMotoristaError:
-    return {"error": "Você não esta logado como um usuario"}, 401
+    return {"error": "Você não esta logado como um motorista"}, 401
