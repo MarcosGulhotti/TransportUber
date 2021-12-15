@@ -2,7 +2,7 @@ from datetime import datetime
 from flask import request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 import sqlalchemy
-from app.controllers.helpers import paginar_dados
+from app.controllers.Utils.helpers import paginar_dados
 from app.controllers.Utils.verificar_usuario import verificar_motorista, verificar_usuario
 from app.exceptions.exc import CategoryTypeError, NaoMotoristaError, NaoUsuarioError, RequiredKeysError,PrevisaoEntregaFormatError, EntregaNãoEstaEmMovimentoError
 from app.models.carga_model import CargaModel
@@ -237,19 +237,25 @@ def filtra_cargas(lista_query):
 
     cargas = CargaModel.query.all()
     cargas = [carga.serialize() for carga in cargas]
-
+    
     for item in lista_query:
       chave = [*item.keys()][0]
       valor = [*item.values()][0]
       if chave.startswith("codigo"):
         valor = int(valor)
+      if chave == "disponivel":
+        if valor == "True" or valor == "False":
+          valor = bool(valor)
+        else:
+          return "Passar booleano com a letra maiuscula."
+
       for item in cargas:
         if item[chave] == valor:
           lista_resultado.append(item)
     
     return lista_resultado
-  except KeyError as e:
-    return f"Chave(s) desnecessária(s)/inválida(s): {e.args}."
+  except ValueError:
+    return f"Código de uf deve ser um número."
 
 @jwt_required()
 def listar_cargas():
@@ -270,8 +276,12 @@ def listar_cargas():
   query_permitidas = ["origem", "destino", "disponivel", "codigo_uf_origem", "codigo_uf_destino"]
 
   filtros = [{k: v} for k,v in data.items() if k.lower() in query_permitidas]
+  dados = filtra_cargas(filtros)
 
-  return paginar_dados(dados=filtra_cargas(filtros), pagina=pagina, por_pagina=por_pagina)
+  if type(dados) == list:
+    return paginar_dados(dados=dados, pagina=pagina, por_pagina=por_pagina)
+  else:
+    return {"error": dados}, 400
 
 
 @jwt_required()
