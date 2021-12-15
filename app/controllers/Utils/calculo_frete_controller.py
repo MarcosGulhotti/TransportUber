@@ -3,6 +3,14 @@ from app.models.municipios_model import MunicipioModel
 from haversine import haversine
 from datetime import timedelta
 
+def calcular_distancia(origem, destino):
+  origem = tuple([float(x) for x in origem.split(",")])
+  destino = tuple([float(x) for x in destino.split(",")])
+  km = haversine(origem, destino)
+  new_km = km * 1.3
+  
+  return round(new_km, 2)
+
 def calcular_frete(origem, destino, volume):
   """
   Função para calcular o frete de uma carga baseado em sua origem,\n

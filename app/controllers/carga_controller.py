@@ -9,7 +9,7 @@ from app.models.carga_model import CargaModel
 from app.models.categoria_model import CategoriaModel
 from werkzeug.exceptions import NotFound
 from app.models.entrega_realizada_model import EntregaRealizadaModel
-from app.controllers.Utils.calculo_frete_controller import gerar_latitude_longitude, calcular_frete, calcular_previsão_de_entrega
+from app.controllers.Utils.calculo_frete_controller import calcular_distancia, gerar_latitude_longitude, calcular_frete, calcular_previsão_de_entrega
 
 
 @jwt_required()
@@ -39,15 +39,18 @@ def criar_carga():
       destino=coord_destino,
       volume=data["volume"]
     )
+    distancia = calcular_distancia(coord_origem, coord_destino)
+    
     data["valor_frete"] = valor_frete
     data["valor_frete_motorista"] = valor_frete - (valor_frete*0.1)
+    data["distancia_do_destino"] = distancia
 
     chaves_necessarias = ['disponivel', 'destino', 'origem', 'volume', 'descricao', 'categorias', 'codigo_uf_origem', 'codigo_uf_destino' ]
     for key in chaves_necessarias:
       if key not in data:
         raise RequiredKeysError(f'Está faltando a chave ({key}).')
 
-    chaves_model = ['disponivel', 'destino', 'origem', 'volume', 'descricao', 'categorias', 'dono_id', 'valor_frete', 'valor_frete_motorista', 'codigo_uf_origem', 'codigo_uf_destino' ]
+    chaves_model = ['disponivel', 'destino', 'origem', 'volume', 'descricao', 'categorias', 'dono_id', 'valor_frete', 'valor_frete_motorista', 'codigo_uf_origem', 'codigo_uf_destino', 'distancia_do_destino' ]
     for key in data:
       if key not in chaves_model:
         raise RequiredKeysError(f'A chave ({key}) não é necessária.')
