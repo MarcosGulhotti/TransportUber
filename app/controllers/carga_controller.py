@@ -2,6 +2,7 @@ from datetime import datetime
 from flask import request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 import sqlalchemy
+from app.controllers.helpers import paginar_dados
 from app.controllers.Utils.verificar_usuario import verificar_motorista, verificar_usuario
 from app.exceptions.exc import CategoryTypeError, NaoMotoristaError, NaoUsuarioError, RequiredKeysError,PrevisaoEntregaFormatError, EntregaNãoEstaEmMovimentoError
 from app.models.carga_model import CargaModel
@@ -228,30 +229,46 @@ def listar_cargas_entregues():
     return {'error': "Não existem cargas entregues."}, 404
 
 def filtra_cargas(lista_query):
-  query_permitidas = ["origem", "destino", "disponivel", "codigo_uf_origem", "codigo_uf_destino"]
-  queries = []
-  lista_resultado = []
+  try:
+    lista_resultado = []
 
-  for nome_query, v in lista_query.items():
-    nome_query = nome_query.lower()
-    if nome_query in query_permitidas:
-      queries.append({nome_query: v})
+    cargas = CargaModel.query.all()
+    cargas = [carga.serialize() for carga in cargas]
 
-
-  cargas = CargaModel.query.all()
-  cargas = [carga.serialize() for carga in cargas]
-
-  for k, v in lista_query.items():
-    for item in cargas:
-      if item[k] == v:
-        lista_resultado.append(item)
-  
-  return lista_resultado
+    for item in lista_query:
+      chave = [*item.keys()][0]
+      valor = [*item.values()][0]
+      if chave.startswith("codigo"):
+        valor = int(valor)
+      for item in cargas:
+        if item[chave] == valor:
+          lista_resultado.append(item)
+    
+    return lista_resultado
+  except KeyError as e:
+    return f"Chave(s) desnecessária(s)/inválida(s): {e.args}."
 
 @jwt_required()
 def listar_cargas():
   data = request.args
-  return {"cargas": filtra_cargas(data)}
+  pagina, por_pagina = 1, 15
+
+  for k, v in data.items():
+    if k == "pagina":
+      pagina = int(v)
+    if k == "por_pagina":
+      por_pagina = int(v)
+
+  if len(data) == 0:
+    cargas = CargaModel.query.all()
+    cargas = [carga.serialize() for carga in cargas]
+    return paginar_dados(dados=cargas, pagina=pagina, por_pagina=por_pagina)
+
+  query_permitidas = ["origem", "destino", "disponivel", "codigo_uf_origem", "codigo_uf_destino"]
+
+  filtros = [{k: v} for k,v in data.items() if k.lower() in query_permitidas]
+
+  return paginar_dados(dados=filtra_cargas(filtros), pagina=pagina, por_pagina=por_pagina)
 
 
 @jwt_required()
