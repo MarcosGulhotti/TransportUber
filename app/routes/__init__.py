@@ -5,6 +5,7 @@ from app.routes.categoria_blueprint import bp_categoria
 from app.routes.autorização_blueprint import bp_autenticacao
 from app.routes.inativo_blueprint import bp_inativo
 from app.routes.super_adm_blueprint import bp_municipio
+from app.routes.locais_blueprint import bp_local
 
 def init_app(app: Flask):
   app.register_blueprint(bp_usuario)
@@ -13,3 +14,4 @@ def init_app(app: Flask):
   app.register_blueprint(bp_autenticacao)
   app.register_blueprint(bp_inativo)
   app.register_blueprint(bp_municipio)
+  app.register_blueprint(bp_local)
