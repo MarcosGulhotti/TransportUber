@@ -17,6 +17,7 @@ class CargaModel(db.Model):
   caminhao: CaminhaoModel
   valor_frete: float
   valor_frete_motorista: float
+  distancia_do_destino: float
 
   __tablename__ = 'cargas'
 
@@ -35,6 +36,7 @@ class CargaModel(db.Model):
   dono_id = Column(Integer, ForeignKey('usuarios.id'), nullable=False)
   valor_frete = Column(Float, nullable=False)
   valor_frete_motorista = Column(Float, nullable=False)
+  distancia_do_destino = Column(Float)
 
 
   caminhao = relationship('CaminhaoModel', backref=backref('carga', uselist=False), uselist=False)
@@ -56,5 +58,6 @@ class CargaModel(db.Model):
       'dono': f'{self.dono.nome} {self.dono.sobrenome}',
       'categorias': [categoria.nome for categoria in self.categorias],
       "valor_frete": round(self.valor_frete, 2),
-      "valor_frete_motorista": round(self.valor_frete_motorista, 2)
+      "valor_frete_motorista": round(self.valor_frete_motorista, 2),
+      "distancia_do_destino": self.distancia_do_destino
     }
