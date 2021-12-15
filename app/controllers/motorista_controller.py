@@ -1,5 +1,6 @@
 from flask import jsonify, request, current_app
 from flask_jwt_extended.utils import get_jwt_identity
+from werkzeug.exceptions import NotFound
 from app.controllers.Utils.verificar_usuario import verificar_motorista
 from app.controllers.carga_controller import gerar_latitude_longitude
 from app.exceptions.exc import CelularFormatError, CpfFormatError, LoginKeysError, NaoMotoristaError, RequiredKeysError
@@ -166,3 +167,34 @@ def atualizar_senha():
     
   return {"msg": "Senha atualizada"}, 200
 
+@jwt_required()
+def atualizar_motorista():
+  session = current_app.db.session
+  data = request.json
+  current_user = get_jwt_identity()
+
+  try:
+    verificar_motorista(current_user)
+    motorista = MotoristaModel.query.get(current_user['id'])
+    autorizado_mudar = ['email', 'celular']
+
+    for key in data:
+      if key not in autorizado_mudar:
+        return {"msg": f'Não é permitido modificar a chave ({key}).'}, 400
+
+    data['updated_at'] = datetime.now()
+    
+    for key, value in data.items():
+      setattr(motorista, key, value)
+
+    session.add(motorista)
+    session.commit()
+
+    driver = MotoristaModel.query.get(current_user['id'])
+
+    return jsonify(driver.serialize()), 200
+    
+  except NotFound:
+    return jsonify({"msg": "Usuário não existe"}), 404
+  except NaoMotoristaError:
+    return {"error": "Você não esta logado como um motorista"}, 401
