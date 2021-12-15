@@ -1,5 +1,7 @@
 from flask import request, jsonify, current_app
 from flask_jwt_extended.utils import get_jwt_identity
+from app.controllers.Utils.verificar_usuario import verificar_usuario
+from app.exceptions.exc import NaoUsuarioError
 from app.models.categoria_model import CategoriaModel
 from werkzeug.exceptions import NotFound
 from flask_jwt_extended import jwt_required
@@ -8,6 +10,10 @@ from app.models.usuario_model import UsuarioModel
 @jwt_required()
 def criar_categoria():
   current_user = get_jwt_identity()
+  try:
+    verificar_usuario(current_user)
+  except NaoUsuarioError:
+    return {"error": "Você não está logado como um usuario"}, 401
   user = UsuarioModel.query.get(current_user)
   if user.super_adm:
     try:
@@ -30,6 +36,10 @@ def criar_categoria():
 @jwt_required()
 def deletar_categoria(categoria_id):
   current_user = get_jwt_identity()
+  try:
+    verificar_usuario(current_user)
+  except NaoUsuarioError:
+    return {"error": "Você não está logado como um usuario"}, 401
   user = UsuarioModel.query.get(current_user)
   if user.super_adm:
     try:

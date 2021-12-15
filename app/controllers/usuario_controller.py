@@ -1,5 +1,7 @@
 from flask import jsonify, request, current_app
 from flask_jwt_extended.utils import get_jwt_identity
+from app.controllers.Utils.calculo_frete_controller import calcular_frete, calcular_previsão_de_entrega, gerar_latitude_longitude
+from app.controllers.Utils.verificar_usuario import verificar_usuario
 from app.exceptions.exc import CelularFormatError, CpfFormatError, LoginKeysError, NaoUsuarioError, RequiredKeysError
 from app.models.avaliacao_usuario_motorista_model import AvaliacaoUsuarioMotoristaModel
 from app.models.usuario_model import UsuarioModel
@@ -92,8 +94,7 @@ def atualizar_usuario():
   current_user = get_jwt_identity()
 
   try:
-    if type(current_user) == dict:
-      raise NaoUsuarioError
+    verificar_usuario(current_user)
     usuario = UsuarioModel.query.get(current_user)
     autorizado_mudar = ['password', 'email', 'celular']
 
@@ -145,8 +146,7 @@ def atualizar_senha():
   current_user = get_jwt_identity()
 
   try:
-    if type(current_user) == dict:
-      raise NaoUsuarioError
+    verificar_usuario(current_user)
     usuario = UsuarioModel.query.get(current_user)
     for k in data.keys():
         if k != "password":
@@ -163,3 +163,47 @@ def atualizar_senha():
     return {"msg": "Senha atualizada"}, 200
   except NaoUsuarioError:
     return {"error": "Você não esta logado como um usuario"}, 401
+
+
+@jwt_required()
+def simulaçao_frete():
+  data: dict = request.get_json()
+  current_user = get_jwt_identity()
+
+  try:
+    verificar_usuario(current_user)
+    
+    chaves_validas = ['origem', 'destino', 'codigo_uf_origem', 'codigo_uf_destino', 'volume']
+    chaves_invalidas = []
+    for k in data.keys():
+      if k not in chaves_validas:
+        chaves_invalidas.append(k)
+    if len(chaves_invalidas) > 0:
+      return {"error": {"chaves invalidas": chaves_invalidas}}
+    
+    origem = data['origem']
+    destino = data['destino']
+    codigo_uf_origem = data['codigo_uf_origem']
+    codigo_uf_destino = data['codigo_uf_destino']
+    volume = data['volume']
+
+    coords_origem = gerar_latitude_longitude(origem, codigo_uf_origem)
+    coords_destino = gerar_latitude_longitude(destino, codigo_uf_destino) 
+
+    valor = calcular_frete(coords_origem, coords_destino, volume)
+    previsão_entrega = calcular_previsão_de_entrega(coords_origem, coords_destino, datetime.now())
+
+    serializer ={
+      "dados simulados": 
+          {
+            "valor": valor,
+            "previsão de entrega": previsão_entrega 
+          }
+    }
+
+    return jsonify(serializer), 200
+
+  except NaoUsuarioError:
+    return {"error": "Você não está logado como usuario"}
+  except AttributeError:
+    return {"error": "Nome de cidade ou codigo uf estão errados"}, 404

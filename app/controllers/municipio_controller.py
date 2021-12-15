@@ -1,3 +1,5 @@
+from flask.json import jsonify
+from app.controllers.Utils.verificar_usuario import verificar_usuario
 from app.services.municipios import municipios
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.exceptions.exc import NaoUsuarioError
@@ -12,8 +14,7 @@ def cria_municipios():
   comprimento_tabela = len(MunicipioModel.query.all())
 
   try:
-    if type(current_user) == dict:
-      raise NaoUsuarioError
+    verificar_usuario(current_user)
     usuario: UsuarioModel = UsuarioModel.query.get(current_user)
 
     if usuario.super_adm:
@@ -36,3 +37,12 @@ def cria_municipios():
     return {'error': "Você não tem permissão para acessar esta rota."}, 401
   except AttributeError:
     return {'error': "Você não tem permissão para acessar esta rota."}, 401
+
+
+@jwt_required()
+def listar_municipios():
+  municipios: MunicipioModel = MunicipioModel.query.all()
+
+  serialize = [municipio.serialize() for municipio in municipios]
+
+  return jsonify(serialize), 200
