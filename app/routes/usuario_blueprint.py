@@ -1,7 +1,7 @@
 from flask import Blueprint
 from app.controllers.avaliacao_controller import avaliar_usuario
-from app.controllers.usuario_controller import atualizar_senha, atualizar_usuario, listar_usuario_id, listar_usuarios
-from app.controllers.carga_controller import atualizar_carga, criar_carga, deletar_carga, listar_carga_id, listar_carga_origem, listar_carga_destino, confirmar_entrega, listar_cargas, listar_cargas_entregues
+from app.controllers.usuario_controller import atualizar_senha, atualizar_usuario, listar_usuario_id, listar_usuarios, simulaçao_frete
+from app.controllers.carga_controller import atualizar_carga, criar_carga, deletar_carga, listar_carga_id, listar_carga_origem, listar_carga_destino, confirmar_entrega, listar_cargas, listar_cargas_entregues, listar_todas_cargas
 
 bp_usuario = Blueprint('bp_usuario', __name__, url_prefix='/usuario')
 
@@ -12,6 +12,7 @@ bp_usuario.patch('')(atualizar_usuario)
 bp_usuario.patch('/senha')(atualizar_senha)
 
 # Rotas Carga
+bp_usuario.get('/todas_cargas')(listar_todas_cargas)
 bp_usuario.post('/carga')(criar_carga)
 bp_usuario.get('/carga/<int:carga_id>')(listar_carga_id)
 bp_usuario.get('/carga/cargas_entregues')(listar_cargas_entregues)
@@ -28,3 +29,6 @@ bp_usuario.delete('/carga/<int:carga_id>')(deletar_carga)
 bp_usuario.get("/carga")(listar_cargas)
 
 bp_usuario.post('/avaliacoes')(avaliar_usuario)
+
+# rota para simular frete
+bp_usuario.get('/carga/simular_frete')(simulaçao_frete)
