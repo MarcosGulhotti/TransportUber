@@ -17,3 +17,10 @@ class MunicipioModel(db.Model):
   latitude = Column(String, nullable=False)
   longitude = Column(String, nullable=False)
   codigo_uf = Column(Integer, nullable=False)
+
+  def serialize(self):
+    return{
+      "id": self.id,
+      "nome": self.nome,
+      "codigo_uf": self.codigo_uf
+    }

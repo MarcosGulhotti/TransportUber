@@ -1,37 +1,15 @@
-from datetime import timedelta, datetime
+from datetime import datetime
 from flask import request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 import sqlalchemy
+from app.controllers.Utils.verificar_usuario import verificar_motorista, verificar_usuario
 from app.exceptions.exc import CategoryTypeError, NaoMotoristaError, NaoUsuarioError, RequiredKeysError,PrevisaoEntregaFormatError, EntregaNãoEstaEmMovimentoError
 from app.models.carga_model import CargaModel
 from app.models.categoria_model import CategoriaModel
 from werkzeug.exceptions import NotFound
-from haversine import haversine
 from app.models.entrega_realizada_model import EntregaRealizadaModel
-from app.models.municipios_model import MunicipioModel
+from app.controllers.Utils.calculo_frete_controller import gerar_latitude_longitude, calcular_frete, calcular_previsão_de_entrega
 
-def calcular_frete(origem, destino, volume):
-  """
-  origem => "{latitude}, {longitude}"
-  destino => "{latitude}, {longitude}"
-  taxa/km => R$1.20
-  taxa/m3 => R$120
-  """
-
-  origem = tuple([float(x) for x in origem.split(",")])
-  destino = tuple([float(x) for x in destino.split(",")])
-
-  km = haversine(origem, destino)
-  total = (km*1.20) + (volume*120)
-  total = round(total, 2)
-
-  return total
-
-def gerar_latitude_longitude(cidade, codigo_uf):
-  cidade = cidade.lower()
-  municipio: MunicipioModel = MunicipioModel.query.filter_by(nome=cidade, codigo_uf=codigo_uf).first()
-  
-  return f'{municipio.latitude}, {municipio.longitude}'
 
 @jwt_required()
 def criar_carga():
@@ -40,8 +18,8 @@ def criar_carga():
   current_user = get_jwt_identity()
   
   try:
-    if type(current_user) == dict:
-      raise NaoUsuarioError
+    verificar_usuario(current_user)
+
     data['destino'] = data['destino'].lower()
     data['origem'] = data['origem'].lower()
     data['dono_id'] = current_user
@@ -130,38 +108,12 @@ def listar_carga_destino(destino):
   except AttributeError:
     return {"msg": "Carga não foi encontrada."}, 400
 
-def calcular_previsão_de_entrega(origem, destino, horario_saida):
-  origem = tuple([float(x) for x in origem.split(",")])
-  destino = tuple([float(x) for x in destino.split(",")])
-
-  km = haversine(origem, destino)
-  media_kmh = 80
-  horas_trabalhadas = 10
-  new_km = km * 1.3
-  previsão = new_km / (media_kmh * (horas_trabalhadas * 1.05))
-  previsão = previsão * 24
-    
-  data_chegada = horario_saida + timedelta(hours=previsão)
-
-  if data_chegada.hour > 18 or data_chegada.hour < 8:
-    if data_chegada.hour > 18:
-      time = 24 - data_chegada.hour
-    elif data_chegada.hour < 8:
-      time = 8 - data_chegada.hour
-  else:
-    time = data_chegada.hour
-    
-  data_chegada = data_chegada + timedelta(hours=time)
-
-  return data_chegada
-
 @jwt_required()
 def pegar_carga(carga_id: int):  
   data = request.get_json()
   current_user = get_jwt_identity()
   try:
-    if type(current_user) != dict:
-      raise NaoMotoristaError
+    verificar_motorista(current_user)
     session = current_app.db.session
     carga: CargaModel = CargaModel.query.get(carga_id)
     if carga.disponivel == False:
@@ -194,8 +146,7 @@ def pegar_carga(carga_id: int):
 def deletar_carga(carga_id):
   current_user = get_jwt_identity()
   try:
-    if type(current_user) == dict:
-      raise NaoUsuarioError
+    verificar_usuario(current_user)
     carga_deletada = CargaModel.query.filter_by(
       id=carga_id).first_or_404(description="Carga não encontrada")
 
@@ -212,10 +163,12 @@ def deletar_carga(carga_id):
 
 @jwt_required()
 def atualizar_carga(carga_id: int):
+  current_user = get_jwt_identity()
   try:
     session = current_app.db.session
     carga: CargaModel = CargaModel.query.get(carga_id)
     data = request.get_json()
+    verificar_usuario(current_user)
 
     if carga.disponivel:
       colunas = ["descricao", "volume"]
@@ -236,14 +189,15 @@ def atualizar_carga(carga_id: int):
     return {'msg': str(e)}, 400
   except AttributeError:
     return jsonify({"msg": "Carga não existe."}), 404
+  except NaoUsuarioError:
+    return {"error": "Você não esta logado como um usuario"}, 401
 
 @jwt_required()
 def confirmar_entrega(carga_id: int):
   session = current_app.db.session
   current_user = get_jwt_identity()
   try:
-    if type(current_user) == dict:
-      raise NaoUsuarioError
+    verificar_usuario(current_user)
     data = {"carga_id": carga_id}
 
     carga: CargaModel = CargaModel.query.get(carga_id)
@@ -299,5 +253,13 @@ def listar_cargas():
   data = request.args
   return {"cargas": filtra_cargas(data)}
 
+
+@jwt_required()
+def listar_todas_cargas():
+  cargas = CargaModel.query.all()
+
+  serializer = [carga.serialize() for carga in cargas]
+
+  return jsonify(serializer), 200
 
   

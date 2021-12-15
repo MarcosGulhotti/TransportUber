@@ -1,5 +1,6 @@
 from flask import jsonify, request, current_app
 from flask_jwt_extended.utils import get_jwt_identity
+from app.controllers.Utils.verificar_usuario import verificar_motorista
 from app.controllers.carga_controller import gerar_latitude_longitude
 from app.exceptions.exc import CelularFormatError, CpfFormatError, LoginKeysError, NaoMotoristaError, RequiredKeysError
 from app.models.avaliacao_usuario_motorista_model import AvaliacaoUsuarioMotoristaModel
@@ -9,10 +10,7 @@ from psycopg2.errors import UniqueViolation
 from sqlalchemy.exc import IntegrityError
 from flask_jwt_extended import create_access_token
 from flask_jwt_extended import jwt_required
-from geopy.geocoders import Nominatim
-import time
 
-from app.models.municipios_model import MunicipioModel
 
 def criar_motorista():
   session = current_app.db.session
@@ -104,15 +102,6 @@ def listar_motoristas():
 
   return jsonify(lista_motoristas), 200
 
-  
-def busca_localizacao(latitude, longitude):
-  geo = Nominatim(user_agent="transport_uber")
-  coordenadas = f"{latitude}, {longitude}"
-  time.sleep(3)
-  try:
-      return geo.reverse(coordenadas, language="pt-br").raw
-  except:
-      return busca_localizacao(latitude, longitude)
 
 @jwt_required()
 def atualizar_localizacao():
@@ -120,8 +109,7 @@ def atualizar_localizacao():
   data = request.get_json()
   current_user = get_jwt_identity()
   try:
-    if type(current_user) == int:
-      raise NaoMotoristaError
+    verificar_motorista(current_user)
 
     motorista = MotoristaModel.query.get(current_user['id'])
     for k in data.keys():
@@ -159,8 +147,7 @@ def atualizar_senha():
   current_user = get_jwt_identity()
 
   try:
-    if type(current_user) == int:
-      raise NaoMotoristaError
+    verificar_motorista(current_user)
     motorista = MotoristaModel.query.get(current_user['id'])
     for k in data.keys():
         if k != "password":

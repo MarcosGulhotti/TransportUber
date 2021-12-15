@@ -2,6 +2,7 @@ from flask import request, jsonify, current_app
 from flask_jwt_extended import jwt_required
 from flask_jwt_extended.utils import get_jwt_identity
 import sqlalchemy
+from app.controllers.Utils.verificar_usuario import verificar_motorista
 from app.exceptions.exc import NaoMotoristaError, PlacaFormatError
 from app.models.caminhao_model import CaminhaoModel
 from werkzeug.exceptions import NotFound
@@ -16,8 +17,7 @@ def criar_caminhao():
   data['modelo'] = data['modelo'].title()
   data['placa'] = data['placa'].upper()
   try:
-    if type(current_user) == int:
-      raise NaoMotoristaError
+    verificar_motorista(current_user)
     data['motorista_id'] = current_user['id']
     novo_caminhao = CaminhaoModel(**data)
     session.add(novo_caminhao)
@@ -46,8 +46,8 @@ def atualizar_caminhao(caminhao_id: int):
     caminhao = CaminhaoModel.query.get(caminhao_id)
     data = request.get_json()
     current_user = get_jwt_identity()
-    if type(current_user) == int:
-      raise NaoMotoristaError
+    
+    verificar_motorista(current_user)
     colunas_validas = ["capacidade_de_carga", "placa"]
 
     for k, v in data.items():
@@ -72,8 +72,8 @@ def atualizar_caminhao(caminhao_id: int):
 def deletar_caminhao(caminhao_id):
   try:
     current_user = get_jwt_identity()
-    if type(current_user) == int:
-      raise NaoMotoristaError
+    verificar_motorista(current_user)
+
     caminhao_deletado = CaminhaoModel.query.filter_by(
       id=caminhao_id).first_or_404(description="Caminhão não encontrado")
 
