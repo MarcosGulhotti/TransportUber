@@ -1,6 +1,5 @@
 from flask import Blueprint
 from app.controllers.avaliacao_controller import avaliar_usuario
-from app.controllers.municipio_controller import listar_municipios
 from app.controllers.usuario_controller import atualizar_senha, atualizar_usuario, listar_usuario_id, listar_usuarios, simulaçao_frete
 from app.controllers.carga_controller import atualizar_carga, criar_carga, deletar_carga, listar_carga_id, listar_carga_origem, listar_carga_destino, confirmar_entrega, listar_cargas, listar_cargas_entregues, listar_todas_cargas
 
@@ -33,6 +32,3 @@ bp_usuario.post('/avaliacoes')(avaliar_usuario)
 
 # rota para simular frete
 bp_usuario.get('/carga/simular_frete')(simulaçao_frete)
-
-# Rota para listar municipios
-bp_usuario.get('/municipios')(listar_municipios)
