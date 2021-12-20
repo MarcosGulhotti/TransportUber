@@ -12,7 +12,7 @@ def verificar_usuario(current_user):
       raise NaoUsuarioError
     else: return True
 
-jwt_required()
+@jwt_required()
 def verificar_motorista(current_user):
     """Verificar se motorista atual é do tipo usuario"""
     current_user = get_jwt_identity()

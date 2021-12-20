@@ -1,4 +1,3 @@
-from flask_jwt_extended.view_decorators import jwt_required
 from app.models.municipios_model import MunicipioModel
 from haversine import haversine
 from datetime import timedelta

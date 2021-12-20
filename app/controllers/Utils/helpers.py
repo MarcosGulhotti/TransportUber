@@ -1,12 +1,5 @@
 import math
 
-from flask_jwt_extended.utils import get_jwt_identity
-from app.exceptions.exc import MotoristaNaoVinculadoError
-
-from app.models.carga_model import CargaModel
-from app.models.motorista_model import MotoristaModel
-
-
 def paginar_dados(dados, pagina = 1, por_pagina = 15):
     pagina = int(pagina)
     por_pagina = int(por_pagina)
