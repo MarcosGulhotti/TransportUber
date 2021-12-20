@@ -9,6 +9,7 @@ from app.models.carga_model import CargaModel
 from app.models.categoria_model import CategoriaModel
 from werkzeug.exceptions import NotFound
 from app.models.entrega_realizada_model import EntregaRealizadaModel
+from app.models.motorista_model import MotoristaModel
 from app.controllers.Utils.calculo_frete_controller import calcular_distancia, gerar_latitude_longitude, calcular_frete, calcular_previsão_de_entrega
 
 
@@ -115,7 +116,7 @@ def listar_carga_destino(destino):
 @jwt_required()
 def pegar_carga(carga_id: int):  
   data = request.get_json()
-  current_user = get_jwt_identity()
+  current_user: MotoristaModel = get_jwt_identity()
   try:
     verificar_motorista(current_user)
     session = current_app.db.session
