@@ -55,9 +55,12 @@ class CargaModel(db.Model):
       'previsao_entrega': self.previsao_entrega,
       'volume': self.volume,
       'caminhao': self.caminhao,
-      'dono': f'{self.dono.nome} {self.dono.sobrenome}',
+      'dono': {
+        "id": self.dono.id,  
+        "nome": f'{self.dono.nome} {self.dono.sobrenome}'
+      },
       'categorias': [categoria.nome for categoria in self.categorias],
-      "valor_frete": round(self.valor_frete, 2),
+      "valor_total_frete": round(self.valor_frete, 2),
       "valor_frete_motorista": round(self.valor_frete_motorista, 2),
       "distancia_do_destino": self.distancia_do_destino
     }
