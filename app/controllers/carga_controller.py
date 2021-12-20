@@ -206,6 +206,8 @@ def confirmar_entrega(carga_id: int):
 
     carga: CargaModel = CargaModel.query.get(carga_id)
 
+    if carga.dono_id != current_user:
+      return {"error": "essa carga não pertence a você"}, 401
     if carga.disponivel == True:
       raise EntregaNãoEstaEmMovimentoError
 
